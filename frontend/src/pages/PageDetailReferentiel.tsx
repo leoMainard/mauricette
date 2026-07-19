@@ -369,7 +369,7 @@ export function PageDetailReferentiel() {
         </div>
         <div style={{ display: "flex", gap: "8px" }}>
           {!sectionFormOuvert && (
-            <button type="button" className="bouton-fantome" onClick={() => setSectionFormOuvert(true)}>
+            <button type="button" className="pastille-filtre" onClick={() => setSectionFormOuvert(true)}>
               + Section
             </button>
           )}
