@@ -15,7 +15,9 @@ from mauricette.application.cas_usage.creer_appel_offre import CreerAppelOffre
 from mauricette.application.cas_usage.deposer_document import DeposerDocument
 from mauricette.application.cas_usage.deposer_fichier import DeposerFichier
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
+from mauricette.application.cas_usage.modifier_appel_offre import ModifierAppelOffre
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
+from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
 from mauricette.config.parametres import obtenir_parametres
 from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
@@ -72,9 +74,17 @@ def obtenir_cas_usage_creer_appel_offre(
 
 def obtenir_cas_usage_lister_appels_offre(
     depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
 ) -> ListerAppelsOffre:
     """Fournit le cas d'usage de listing des Appels d'Offres, prêt à l'emploi."""
-    return ListerAppelsOffre(depot_appels_offre)
+    return ListerAppelsOffre(depot_appels_offre, depot_documents)
+
+
+def obtenir_cas_usage_modifier_appel_offre(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+) -> ModifierAppelOffre:
+    """Fournit le cas d'usage de renommage d'un Appel d'Offres, prêt à l'emploi."""
+    return ModifierAppelOffre(depot_appels_offre)
 
 
 def obtenir_cas_usage_obtenir_appel_offre(
@@ -100,3 +110,11 @@ def obtenir_cas_usage_deposer_fichier(
 ) -> DeposerFichier:
     """Fournit le cas d'usage de dépôt de fichier (avec éclatement zip et dédoublonnage)."""
     return DeposerFichier(deposer_document, depot_documents)
+
+
+def obtenir_cas_usage_supprimer_document(
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+    stockage: StockageDocumentPort = Depends(obtenir_stockage),
+) -> SupprimerDocument:
+    """Fournit le cas d'usage de suppression d'un document, prêt à l'emploi."""
+    return SupprimerDocument(depot_documents, stockage)

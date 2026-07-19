@@ -22,6 +22,9 @@ async function traiterReponse<T>(reponse: Response): Promise<T> {
     const message = corps?.detail ?? `Erreur HTTP ${reponse.status}`;
     throw new ErreurApi(reponse.status, message);
   }
+  if (reponse.status === 204) {
+    return undefined as T;
+  }
   return reponse.json() as Promise<T>;
 }
 

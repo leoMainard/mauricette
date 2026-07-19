@@ -32,6 +32,13 @@ export interface AppelOffreDetail {
   documents: DocumentDepose[];
 }
 
+/** Un Appel d'Offres accompagné du nombre et du poids total de ses documents (vue liste). */
+export interface AppelOffreAvecStatistiques {
+  appel_offre: AppelOffre;
+  nombre_documents: number;
+  taille_totale_octets: number;
+}
+
 /** Bilan du dépôt d'un fichier : documents créés (peut être plusieurs si zip) et doublons ignorés. */
 export interface ResultatDepotFichier {
   documents_crees: DocumentDepose[];

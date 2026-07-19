@@ -6,11 +6,18 @@ from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 
-from mauricette.api.dependances import obtenir_cas_usage_deposer_fichier
+from mauricette.api.dependances import (
+    obtenir_cas_usage_deposer_fichier,
+    obtenir_cas_usage_supprimer_document,
+)
 from mauricette.api.schemas.document_schemas import DepotFichierReponse
 from mauricette.application.cas_usage.deposer_fichier import (
     CommandeDeposerFichier,
     DeposerFichier,
+)
+from mauricette.application.cas_usage.supprimer_document import (
+    CommandeSupprimerDocument,
+    SupprimerDocument,
 )
 from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurDepotDocument
 
@@ -44,3 +51,18 @@ async def deposer_document(
             status_code=status.HTTP_502_BAD_GATEWAY, detail=str(erreur)
         ) from erreur
     return DepotFichierReponse.depuis_resultat(resultat)
+
+
+@routeur.delete("/{document_id}", status_code=status.HTTP_204_NO_CONTENT)
+def supprimer_document(
+    appel_offre_id: UUID,
+    document_id: UUID,
+    cas_usage: SupprimerDocument = Depends(obtenir_cas_usage_supprimer_document),
+) -> None:
+    """Supprime un document (stockage et base de données)."""
+    try:
+        cas_usage.executer(
+            CommandeSupprimerDocument(appel_offre_id=appel_offre_id, document_id=document_id)
+        )
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur

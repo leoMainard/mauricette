@@ -87,5 +87,9 @@ class DeposerDocument:
 
     @staticmethod
     def _construire_cle_stockage(appel_offre_id: UUID, document_id: UUID, nom_original: str) -> str:
-        """Construit une clé de stockage unique, organisée par Appel d'Offres."""
-        return f"appels_offre/{appel_offre_id}/{document_id}_{nom_original}"
+        """Construit une clé de stockage unique, organisée par Appel d'Offres.
+
+        `document_id` a son propre segment de chemin : `nom_original` peut contenir
+        des "/" (arborescence d'un zip) sans ambiguïté avec le reste de la clé.
+        """
+        return f"appels_offre/{appel_offre_id}/{document_id}/{nom_original}"

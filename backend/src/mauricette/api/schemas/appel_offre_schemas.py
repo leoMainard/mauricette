@@ -13,6 +13,7 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from mauricette.api.schemas.document_schemas import DocumentReponse
+from mauricette.application.cas_usage.lister_appels_offre import AppelOffreAvecStatistiques
 from mauricette.application.cas_usage.obtenir_appel_offre import DetailAppelOffre
 from mauricette.domaine.entites.appel_offre import UTILISATEUR_NON_AUTHENTIFIE, AppelOffre
 from mauricette.domaine.entites.enums import StatutAppelOffre
@@ -27,6 +28,12 @@ class CreationAppelOffreRequete(BaseModel):
 
     nom: str = Field(min_length=1, max_length=255, description="Nom donné à l'Appel d'Offres")
     cree_par: str = Field(default=UTILISATEUR_NON_AUTHENTIFIE, max_length=255)
+
+
+class ModificationAppelOffreRequete(BaseModel):
+    """Corps de requête pour le renommage d'un Appel d'Offres."""
+
+    nom: str = Field(min_length=1, max_length=255, description="Nouveau nom de l'Appel d'Offres")
 
 
 class AppelOffreReponse(BaseModel):
@@ -49,6 +56,23 @@ class AppelOffreReponse(BaseModel):
             statut=appel_offre.statut,
             date_creation=appel_offre.date_creation,
             date_maj=appel_offre.date_maj,
+        )
+
+
+class AppelOffreAvecStatistiquesReponse(BaseModel):
+    """Représentation HTTP d'un Appel d'Offres enrichi de ses statistiques de documents."""
+
+    appel_offre: AppelOffreReponse
+    nombre_documents: int
+    taille_totale_octets: int
+
+    @classmethod
+    def depuis_dto(cls, dto: AppelOffreAvecStatistiques) -> "AppelOffreAvecStatistiquesReponse":
+        """Construit le schéma de réponse à partir du DTO d'application `AppelOffreAvecStatistiques`."""
+        return cls(
+            appel_offre=AppelOffreReponse.depuis_entite(dto.appel_offre),
+            nombre_documents=dto.statistiques.nombre_documents,
+            taille_totale_octets=dto.statistiques.taille_totale_octets,
         )
 
 

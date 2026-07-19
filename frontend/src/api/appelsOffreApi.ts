@@ -4,7 +4,12 @@
  */
 
 import { requeteFormulaire, requeteJson } from "./client";
-import type { AppelOffre, AppelOffreDetail, ResultatDepotFichier } from "./types";
+import type {
+  AppelOffre,
+  AppelOffreAvecStatistiques,
+  AppelOffreDetail,
+  ResultatDepotFichier,
+} from "./types";
 
 export async function creerAppelOffre(nom: string): Promise<AppelOffre> {
   return requeteJson<AppelOffre>("/appels-offre", {
@@ -13,12 +18,20 @@ export async function creerAppelOffre(nom: string): Promise<AppelOffre> {
   });
 }
 
-export async function listerAppelsOffre(): Promise<AppelOffre[]> {
-  return requeteJson<AppelOffre[]>("/appels-offre");
+export async function listerAppelsOffre(terme?: string): Promise<AppelOffreAvecStatistiques[]> {
+  const suffixe = terme?.trim() ? `?recherche=${encodeURIComponent(terme.trim())}` : "";
+  return requeteJson<AppelOffreAvecStatistiques[]>(`/appels-offre${suffixe}`);
 }
 
 export async function obtenirAppelOffre(appelOffreId: string): Promise<AppelOffreDetail> {
   return requeteJson<AppelOffreDetail>(`/appels-offre/${appelOffreId}`);
+}
+
+export async function renommerAppelOffre(appelOffreId: string, nom: string): Promise<AppelOffre> {
+  return requeteJson<AppelOffre>(`/appels-offre/${appelOffreId}`, {
+    method: "PATCH",
+    body: JSON.stringify({ nom }),
+  });
 }
 
 export async function deposerDocument(
@@ -31,4 +44,10 @@ export async function deposerDocument(
     `/appels-offre/${appelOffreId}/documents`,
     formulaire,
   );
+}
+
+export async function supprimerDocument(appelOffreId: string, documentId: string): Promise<void> {
+  return requeteJson<void>(`/appels-offre/${appelOffreId}/documents/${documentId}`, {
+    method: "DELETE",
+  });
 }

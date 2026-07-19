@@ -4,11 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.document import Document
-from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
+from mauricette.domaine.ports.document_repository import DocumentRepositoryPort, StatistiquesDocuments
 from mauricette.infrastructure.persistence.postgres.mappers import (
     document_vers_entite,
     document_vers_modele,
@@ -55,3 +55,25 @@ class DocumentRepositorySQL(DocumentRepositoryPort):
         )
         modele = self._session.execute(requete).scalars().first()
         return document_vers_entite(modele) if modele else None
+
+    def supprimer(self, document_id: UUID) -> None:
+        modele = self._session.get(DocumentModele, document_id)
+        if modele is None:
+            raise ValueError(f"Document introuvable : {document_id}")
+        self._session.delete(modele)
+        self._session.commit()
+
+    def compter_par_appel_offre(self) -> dict[UUID, StatistiquesDocuments]:
+        requete = select(
+            DocumentModele.appel_offre_id,
+            func.count(DocumentModele.id),
+            func.coalesce(func.sum(DocumentModele.taille_octets), 0),
+        ).group_by(DocumentModele.appel_offre_id)
+
+        resultats = self._session.execute(requete).all()
+        return {
+            appel_offre_id: StatistiquesDocuments(
+                nombre_documents=nombre, taille_totale_octets=int(taille_totale)
+            )
+            for appel_offre_id, nombre, taille_totale in resultats
+        }
