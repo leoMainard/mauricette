@@ -31,3 +31,19 @@ class FournisseurStockage(StrEnum):
 
     LOCAL = "local"
     S3 = "s3"
+
+
+class FormatReponse(StrEnum):
+    """Type de réponse attendue pour une question du référentiel.
+
+    Guide à la fois l'utilisateur qui rédige la question et, plus tard, le RAG
+    qui devra formuler sa réponse dans le format attendu.
+    """
+
+    OUI_NON = "oui_non"
+    MONTANT = "montant"
+    DATE = "date"
+    POURCENTAGE = "pourcentage"
+    LISTE = "liste"
+    TEXTE_LIBRE = "texte_libre"
+    AUTRE = "autre"

@@ -1,6 +1,6 @@
-import { Plus } from "lucide-react";
+import { BookOpen, FolderOpen, Plus } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { LogoMauricette } from "./icones/LogoMauricette";
 
 interface Props {
@@ -9,12 +9,18 @@ interface Props {
   barreSuperieure?: ReactNode;
 }
 
+const LIENS_NAVIGATION = [
+  { chemin: "/", label: "Mes Appels d'Offres", Icone: FolderOpen },
+  { chemin: "/referentiels", label: "Référentiels", Icone: BookOpen },
+];
+
 /**
- * Ossature de l'application : sidebar fixe à gauche (marque + actions
- * globales) et zone principale (barre supérieure + contenu de la page).
- * D'autres éléments de navigation viendront s'ajouter à la sidebar plus tard.
+ * Ossature de l'application : sidebar fixe à gauche (marque, action globale et
+ * navigation) et zone principale (barre supérieure + contenu de la page).
  */
 export function Layout({ children, barreSuperieure }: Props) {
+  const emplacement = useLocation();
+
   return (
     <div className="app-shell">
       <aside className="barre-laterale">
@@ -26,6 +32,22 @@ export function Layout({ children, barreSuperieure }: Props) {
           <Plus size={18} strokeWidth={2.5} />
           Nouvel AO
         </Link>
+
+        <nav className="barre-laterale__navigation">
+          {LIENS_NAVIGATION.map(({ chemin, label, Icone }) => {
+            const estActif = chemin === "/" ? emplacement.pathname === "/" : emplacement.pathname.startsWith(chemin);
+            return (
+              <Link
+                key={chemin}
+                to={chemin}
+                className={`barre-laterale__lien${estActif ? " barre-laterale__lien--actif" : ""}`}
+              >
+                <Icone size={18} />
+                {label}
+              </Link>
+            );
+          })}
+        </nav>
       </aside>
 
       <div className="zone-principale">

@@ -18,6 +18,7 @@
   --text-h: var(--marine);
   --text-discret: var(--gris-bleu-fonce);
   --bg: #ffffff;
+  --bg-page: #f2f3f7;
   --bg-alt: #f6fbfd;
   --border: var(--gris-bleu);
   --code-bg: #eef1f5;
@@ -37,7 +38,7 @@
   letter-spacing: 0;
   color-scheme: light dark;
   color: var(--text);
-  background: var(--bg);
+  background: var(--bg-page);
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -49,8 +50,9 @@
     --text: #dbe4f7;
     --text-h: #ffffff;
     --text-discret: #93a0c2;
-    --bg: #0a0f1e;
-    --bg-alt: #101a33;
+    --bg: #101a33;
+    --bg-page: #0a0f1e;
+    --bg-alt: rgba(255, 255, 255, 0.04);
     --border: rgba(101, 216, 244, 0.18);
     --code-bg: rgba(255, 255, 255, 0.07);
     --accent: #65d8f4;
@@ -68,7 +70,7 @@
 #root {
   width: 100%;
   min-height: 100svh;
-  background: var(--bg);
+  background: var(--bg-page);
 }
 
 body {
