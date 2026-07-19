@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { listerAppelsOffre } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
 import type { AppelOffreAvecStatistiques, StatutAppelOffre } from "../api/types";
+import { EnTeteApplication } from "../components/EnTeteApplication";
 
 const LIBELLES_STATUT: Record<StatutAppelOffre, string> = {
   brouillon: "Brouillon",
@@ -54,69 +55,67 @@ export function PageListeAppelsOffre() {
   }, [terme]);
 
   return (
-    <div className="page">
-      <header className="entete">
-        <h1>Mauricette</h1>
-        <p className="texte-discret">
-          Dépose ton Appel d'Offres, et laisse Mauricette t'aider à y voir clair.
-        </p>
-      </header>
+    <>
+      <EnTeteApplication />
+      <div className="page">
+        <main className="contenu">
+          <div className="carte carte--resume">
+            <input
+              type="search"
+              value={terme}
+              onChange={(e) => setTerme(e.target.value)}
+              placeholder="Rechercher un Appel d'Offres par nom..."
+              aria-label="Rechercher un Appel d'Offres par nom"
+            />
+            <Link to="/appels-offre/nouveau">
+              <button type="button">Nouvel Appel d'Offres</button>
+            </Link>
+          </div>
 
-      <main className="contenu">
-        <div className="carte carte--resume">
-          <input
-            type="search"
-            value={terme}
-            onChange={(e) => setTerme(e.target.value)}
-            placeholder="Rechercher un Appel d'Offres par nom..."
-            aria-label="Rechercher un Appel d'Offres par nom"
-          />
-          <Link to="/appels-offre/nouveau">
-            <button type="button">Nouvel Appel d'Offres</button>
-          </Link>
-        </div>
+          {erreur && <p className="message-erreur">{erreur}</p>}
 
-        {erreur && <p className="message-erreur">{erreur}</p>}
-
-        {chargement ? (
-          <p className="texte-discret">Chargement...</p>
-        ) : appelsOffre.length === 0 ? (
-          <p className="texte-discret">
-            {terme ? "Aucun Appel d'Offres ne correspond à cette recherche." : "Aucun Appel d'Offres pour le moment."}
-          </p>
-        ) : (
-          <table className="table-documents">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Créé par</th>
-                <th>Créé le</th>
-                <th>Documents</th>
-                <th>Taille</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appelsOffre.map(({ appel_offre, nombre_documents, taille_totale_octets }) => (
-                <tr key={appel_offre.id}>
-                  <td>
-                    <Link to={`/appels-offre/${appel_offre.id}`}>{appel_offre.nom}</Link>
-                  </td>
-                  <td>
-                    <span className={`badge badge--${appel_offre.statut}`}>
-                      {LIBELLES_STATUT[appel_offre.statut]}
-                    </span>
-                  </td>
-                  <td>{appel_offre.cree_par}</td>
-                  <td>{formaterDate(appel_offre.date_creation)}</td>
-                  <td>{nombre_documents}</td>
-                  <td>{formaterTaille(taille_totale_octets)}</td>
+          {chargement ? (
+            <p className="texte-discret">Chargement...</p>
+          ) : appelsOffre.length === 0 ? (
+            <p className="texte-discret">
+              {terme
+                ? "Aucun Appel d'Offres ne correspond à cette recherche."
+                : "Aucun Appel d'Offres pour le moment."}
+            </p>
+          ) : (
+            <table className="table-documents">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Statut</th>
+                  <th>Créé par</th>
+                  <th>Créé le</th>
+                  <th>Documents</th>
+                  <th>Taille</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </main>
-    </div>
+              </thead>
+              <tbody>
+                {appelsOffre.map(({ appel_offre, nombre_documents, taille_totale_octets }) => (
+                  <tr key={appel_offre.id}>
+                    <td>
+                      <Link to={`/appels-offre/${appel_offre.id}`}>{appel_offre.nom}</Link>
+                    </td>
+                    <td>
+                      <span className={`badge badge--${appel_offre.statut}`}>
+                        {LIBELLES_STATUT[appel_offre.statut]}
+                      </span>
+                    </td>
+                    <td>{appel_offre.cree_par}</td>
+                    <td>{formaterDate(appel_offre.date_creation)}</td>
+                    <td>{nombre_documents}</td>
+                    <td>{formaterTaille(taille_totale_octets)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </main>
+      </div>
+    </>
   );
 }

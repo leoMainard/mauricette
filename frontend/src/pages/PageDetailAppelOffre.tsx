@@ -9,6 +9,7 @@ import {
 import { ErreurApi } from "../api/client";
 import type { AppelOffre, DocumentDepose, StatutAppelOffre } from "../api/types";
 import { ArborescenceDocuments } from "../components/ArborescenceDocuments";
+import { EnTeteApplication } from "../components/EnTeteApplication";
 import { SuiviDepot, type SuiviFichier } from "../components/SuiviDepot";
 import { ZoneDepotFichiers } from "../components/ZoneDepotFichiers";
 
@@ -135,115 +136,126 @@ export function PageDetailAppelOffre() {
 
   if (chargement) {
     return (
-      <div className="page">
-        <p className="texte-discret">Chargement...</p>
-      </div>
+      <>
+        <EnTeteApplication />
+        <div className="page">
+          <p className="texte-discret">Chargement...</p>
+        </div>
+      </>
     );
   }
 
   if (!appelOffre) {
     return (
-      <div className="page">
-        <p className="message-erreur">{erreur ?? "Appel d'Offres introuvable."}</p>
-        <Link to="/">Retour à la liste</Link>
-      </div>
+      <>
+        <EnTeteApplication />
+        <div className="page">
+          <p className="message-erreur">{erreur ?? "Appel d'Offres introuvable."}</p>
+          <Link to="/">Retour à la liste</Link>
+        </div>
+      </>
     );
   }
 
   const tailleTotale = documents.reduce((total, d) => total + d.taille_octets, 0);
 
   return (
-    <div className="page">
-      <header className="entete">
-        <Link to="/" className="texte-discret">
-          ← Retour à la liste
-        </Link>
-      </header>
-
-      <main className="contenu">
-        <div className="carte">
-          {enEditionNom ? (
-            <>
-              <input
-                type="text"
-                value={nomEnCours}
-                onChange={(e) => setNomEnCours(e.target.value)}
-                disabled={renommageEnCours}
-              />
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button type="button" onClick={enregistrerNom} disabled={renommageEnCours || !nomEnCours.trim()}>
-                  Enregistrer
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setEnEditionNom(false);
-                    setNomEnCours(appelOffre.nom);
-                  }}
+    <>
+      <EnTeteApplication />
+      <div className="page">
+        <main className="contenu">
+          <Link to="/" className="lien-retour">
+            ← Retour à la liste
+          </Link>
+          <div className="carte">
+            {enEditionNom ? (
+              <>
+                <input
+                  type="text"
+                  value={nomEnCours}
+                  onChange={(e) => setNomEnCours(e.target.value)}
                   disabled={renommageEnCours}
-                >
-                  Annuler
+                />
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    type="button"
+                    onClick={enregistrerNom}
+                    disabled={renommageEnCours || !nomEnCours.trim()}
+                  >
+                    Enregistrer
+                  </button>
+                  <button
+                    type="button"
+                    className="bouton-fantome"
+                    onClick={() => {
+                      setEnEditionNom(false);
+                      setNomEnCours(appelOffre.nom);
+                    }}
+                    disabled={renommageEnCours}
+                  >
+                    Annuler
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="carte--resume">
+                <h2>{appelOffre.nom}</h2>
+                <button type="button" className="bouton-fantome" onClick={() => setEnEditionNom(true)}>
+                  Renommer
                 </button>
               </div>
-            </>
-          ) : (
-            <div className="carte--resume">
-              <h2>{appelOffre.nom}</h2>
-              <button type="button" onClick={() => setEnEditionNom(true)}>
-                Renommer
-              </button>
-            </div>
-          )}
+            )}
 
-          <table className="table-documents">
-            <tbody>
-              <tr>
-                <th>Statut</th>
-                <td>
-                  <span className={`badge badge--${appelOffre.statut}`}>
-                    {LIBELLES_STATUT[appelOffre.statut]}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th>Créé par</th>
-                <td>{appelOffre.cree_par}</td>
-              </tr>
-              <tr>
-                <th>Créé le</th>
-                <td>{formaterDateHeure(appelOffre.date_creation)}</td>
-              </tr>
-              <tr>
-                <th>Dernière modification</th>
-                <td>{formaterDateHeure(appelOffre.date_maj)}</td>
-              </tr>
-              <tr>
-                <th>Documents</th>
-                <td>
-                  {documents.length} ({formaterTaille(tailleTotale)})
-                </td>
-              </tr>
-            </tbody>
-          </table>
+            <table className="table-documents">
+              <tbody>
+                <tr>
+                  <th>Statut</th>
+                  <td>
+                    <span className={`badge badge--${appelOffre.statut}`}>
+                      {LIBELLES_STATUT[appelOffre.statut]}
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th>Créé par</th>
+                  <td>{appelOffre.cree_par}</td>
+                </tr>
+                <tr>
+                  <th>Créé le</th>
+                  <td>{formaterDateHeure(appelOffre.date_creation)}</td>
+                </tr>
+                <tr>
+                  <th>Dernière modification</th>
+                  <td>{formaterDateHeure(appelOffre.date_maj)}</td>
+                </tr>
+                <tr>
+                  <th>Documents</th>
+                  <td>
+                    {documents.length} ({formaterTaille(tailleTotale)})
+                  </td>
+                </tr>
+              </tbody>
+            </table>
 
-          {erreur && <p className="message-erreur">{erreur}</p>}
-        </div>
+            {erreur && <p className="message-erreur">{erreur}</p>}
+          </div>
 
-        <div className="carte">
-          <h2>Ajouter des documents</h2>
-          <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
-          <SuiviDepot suivis={suivis} />
-        </div>
+          <div className="carte">
+            <h2>Ajouter des documents</h2>
+            <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
+            <SuiviDepot suivis={suivis} />
+          </div>
 
-        <div className="carte">
-          <h2>Documents</h2>
-          <ArborescenceDocuments
-            documents={documents}
-            onSupprimer={supprimer}
-            suppressionEnCours={suppressionEnCours}
-          />
-        </div>
-      </main>
-    </div>
+          <div className="carte">
+            <h2>Documents</h2>
+            <ArborescenceDocuments
+              documents={documents}
+              onSupprimer={supprimer}
+              suppressionEnCours={suppressionEnCours}
+            />
+          </div>
+        </main>
+      </div>
+    </>
   );
 }
