@@ -1,8 +1,9 @@
 """Cas d'usage : dépôt d'un fichier déposé par l'utilisateur (document ou archive zip).
 
 Ce cas d'usage orchestre `DeposerDocument` (un fichier physique -> un document) en
-ajoutant deux comportements transverses au-dessus :
-- l'éclatement automatique des archives .zip en documents individuels ;
+ajoutant des comportements transverses au-dessus :
+- l'éclatement automatique des archives .zip en documents individuels, en conservant
+  l'arborescence du zip (chemin relatif complet dans `nom_original`) ;
 - l'ignorance des doublons (même contenu, identifié par hash SHA-256).
 
 Le zip lui-même n'est jamais conservé comme document : seul son contenu extrait l'est.
@@ -13,6 +14,7 @@ from __future__ import annotations
 import hashlib
 import io
 import mimetypes
+import posixpath
 import zipfile
 from dataclasses import dataclass, field
 from typing import BinaryIO
@@ -108,20 +110,22 @@ class DeposerFichier:
             for entree in entrees:
                 contenu_entree = archive.read(entree)
                 hash_sha256 = hashlib.sha256(contenu_entree).hexdigest()
-                nom_fichier = entree.filename.rsplit("/", 1)[-1]
+                # Chemin relatif complet (ex: "Lot1/CCTP/cctp.pdf"), pour conserver
+                # l'arborescence du zip et permettre de la reconstituer côté interface.
+                chemin_relatif = entree.filename
 
                 if (
                     hash_sha256 in hashs_deja_deposes_dans_ce_lot
                     or self._depot_documents.obtenir_par_hash(appel_offre_id, hash_sha256) is not None
                 ):
-                    resultat.doublons_ignores.append(nom_fichier)
+                    resultat.doublons_ignores.append(chemin_relatif)
                     continue
 
-                type_mime, _ = mimetypes.guess_type(nom_fichier)
+                type_mime, _ = mimetypes.guess_type(chemin_relatif)
                 document = self._deposer_document.executer(
                     CommandeDeposerDocument(
                         appel_offre_id=appel_offre_id,
-                        nom_original=nom_fichier,
+                        nom_original=chemin_relatif,
                         contenu=io.BytesIO(contenu_entree),
                         type_mime=type_mime or "application/octet-stream",
                     )
@@ -145,7 +149,9 @@ class DeposerFichier:
 
     @staticmethod
     def _entrees_valides(archive: zipfile.ZipFile) -> list[zipfile.ZipInfo]:
-        """Filtre les dossiers et les fichiers techniques (__MACOSX, .DS_Store...)."""
+        """Filtre les dossiers, les fichiers techniques (__MACOSX, .DS_Store...)
+        et les chemins dangereux (absolus ou remontant hors de l'archive, dits
+        "zip slip")."""
         entrees = []
         for entree in archive.infolist():
             if entree.is_dir():
@@ -155,8 +161,17 @@ class DeposerFichier:
                 continue
             if nom_fichier in NOMS_ENTREES_IGNOREES or nom_fichier.startswith("."):
                 continue
+            if not DeposerFichier._est_chemin_sur(entree.filename):
+                continue
             entrees.append(entree)
         return entrees
+
+    @staticmethod
+    def _est_chemin_sur(chemin_zip: str) -> bool:
+        """Rejette les chemins absolus ou contenant un ".." (évasion hors de l'archive)."""
+        if posixpath.isabs(chemin_zip):
+            return False
+        return posixpath.normpath(chemin_zip).split(posixpath.sep)[0] != ".."
 
     @staticmethod
     def _verifier_taille_archive(entrees: list[zipfile.ZipInfo]) -> None:

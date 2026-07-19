@@ -27,8 +27,12 @@ class AppelOffreRepositoryPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def lister_tous(self) -> list[AppelOffre]:
-        """Retourne tous les Appels d'Offres, triés du plus récent au plus ancien."""
+    def lister_tous(self, terme_recherche: str | None = None) -> list[AppelOffre]:
+        """Retourne les Appels d'Offres, triés du plus récent au plus ancien.
+
+        Si `terme_recherche` est fourni, ne retourne que les AO dont le nom le
+        contient (recherche insensible à la casse).
+        """
         raise NotImplementedError
 
     @abstractmethod

@@ -48,8 +48,10 @@ class DocumentModele(Base):
     appel_offre_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
     )
-    nom_original: Mapped[str] = mapped_column(String(500), nullable=False)
-    cle_stockage: Mapped[str] = mapped_column(String(1000), nullable=False)
+    # Longueurs généreuses : peut contenir le chemin relatif complet d'un zip
+    # (ex: "Lot1/CCTP/cctp.pdf") pour en conserver l'arborescence.
+    nom_original: Mapped[str] = mapped_column(String(2000), nullable=False)
+    cle_stockage: Mapped[str] = mapped_column(String(2500), nullable=False)
     fournisseur_stockage: Mapped[str] = mapped_column(String(50), nullable=False)
     type_mime: Mapped[str] = mapped_column(String(255), nullable=False)
     taille_octets: Mapped[int] = mapped_column(BigInteger, nullable=False)

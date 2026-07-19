@@ -42,13 +42,22 @@
   color: var(--text-h);
 }
 
-.carte input[type="text"] {
+.carte input[type="text"],
+.carte input[type="search"] {
   font: inherit;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: transparent;
   color: inherit;
+}
+
+.carte--resume input[type="search"] {
+  flex: 1;
+}
+
+a {
+  color: var(--accent);
 }
 
 .carte button {
@@ -188,7 +197,49 @@
   color: #d1372a;
 }
 
-.badge--en_attente {
+.badge--en_attente,
+.badge--en_cours {
   background: var(--accent-bg);
   color: var(--accent);
+}
+
+.badge--archive {
+  background: var(--code-bg);
+  color: var(--text);
+}
+
+.arborescence {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.arbre-noeud {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 4px;
+  font-size: 14px;
+}
+
+.arbre-noeud--dossier {
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.arbre-noeud__nom {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.arbre-noeud--fichier button {
+  font: inherit;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  flex-shrink: 0;
 }
