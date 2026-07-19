@@ -1,6 +1,23 @@
 """Routeurs FastAPI, regroupés par ressource métier."""
 
+from mauricette.api.routes.appel_offre_referentiel_routes import (
+    routeur as routeur_appel_offre_referentiels,
+)
 from mauricette.api.routes.appel_offre_routes import routeur as routeur_appels_offre
 from mauricette.api.routes.document_routes import routeur as routeur_documents
+from mauricette.api.routes.question_referentiel_routes import (
+    routeur as routeur_questions_referentiel,
+)
+from mauricette.api.routes.referentiel_routes import routeur as routeur_referentiels
+from mauricette.api.routes.section_referentiel_routes import (
+    routeur as routeur_sections_referentiel,
+)
 
-__all__ = ["routeur_appels_offre", "routeur_documents"]
+__all__ = [
+    "routeur_appel_offre_referentiels",
+    "routeur_appels_offre",
+    "routeur_documents",
+    "routeur_questions_referentiel",
+    "routeur_referentiels",
+    "routeur_sections_referentiel",
+]

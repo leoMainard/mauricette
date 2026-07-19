@@ -11,16 +11,57 @@ from functools import lru_cache
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
+from mauricette.application.cas_usage.attacher_referentiel_appel_offre import (
+    AttacherReferentielAAppelOffre,
+)
+from mauricette.application.cas_usage.changer_activation_question_referentiel import (
+    ChangerActivationQuestionReferentiel,
+)
 from mauricette.application.cas_usage.creer_appel_offre import CreerAppelOffre
+from mauricette.application.cas_usage.creer_question_referentiel import CreerQuestionReferentiel
+from mauricette.application.cas_usage.creer_referentiel import CreerReferentiel
+from mauricette.application.cas_usage.creer_section_referentiel import CreerSectionReferentiel
 from mauricette.application.cas_usage.deposer_document import DeposerDocument
 from mauricette.application.cas_usage.deposer_fichier import DeposerFichier
+from mauricette.application.cas_usage.detacher_referentiel_appel_offre import (
+    DetacherReferentielDeAppelOffre,
+)
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
+from mauricette.application.cas_usage.lister_referentiels import ListerReferentiels
+from mauricette.application.cas_usage.lister_referentiels_appel_offre import (
+    ListerReferentielsAppelOffre,
+)
 from mauricette.application.cas_usage.modifier_appel_offre import ModifierAppelOffre
+from mauricette.application.cas_usage.modifier_question_referentiel import (
+    ModifierQuestionReferentiel,
+)
+from mauricette.application.cas_usage.modifier_referentiel import ModifierReferentiel
+from mauricette.application.cas_usage.modifier_section_referentiel import (
+    ModifierSectionReferentiel,
+)
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
+from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
 from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
+from mauricette.application.cas_usage.supprimer_question_referentiel import (
+    SupprimerQuestionReferentiel,
+)
+from mauricette.application.cas_usage.supprimer_referentiel import SupprimerReferentiel
+from mauricette.application.cas_usage.supprimer_section_referentiel import (
+    SupprimerSectionReferentiel,
+)
 from mauricette.config.parametres import obtenir_parametres
 from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
+from mauricette.domaine.ports.question_referentiel_repository import (
+    QuestionReferentielRepositoryPort,
+)
+from mauricette.domaine.ports.referentiel_appel_offre_repository import (
+    ReferentielAppelOffreRepositoryPort,
+)
+from mauricette.domaine.ports.referentiel_repository import ReferentielRepositoryPort
+from mauricette.domaine.ports.section_referentiel_repository import (
+    SectionReferentielRepositoryPort,
+)
 from mauricette.domaine.ports.stockage_document import StockageDocumentPort
 from mauricette.infrastructure.persistence.postgres.appel_offre_repository_sql import (
     AppelOffreRepositorySQL,
@@ -28,6 +69,18 @@ from mauricette.infrastructure.persistence.postgres.appel_offre_repository_sql i
 from mauricette.infrastructure.persistence.postgres.base import GestionnaireSessions
 from mauricette.infrastructure.persistence.postgres.document_repository_sql import (
     DocumentRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.question_referentiel_repository_sql import (
+    QuestionReferentielRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.referentiel_appel_offre_repository_sql import (
+    ReferentielAppelOffreRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.referentiel_repository_sql import (
+    ReferentielRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.section_referentiel_repository_sql import (
+    SectionReferentielRepositorySQL,
 )
 from mauricette.infrastructure.stockage.fabrique_stockage import creer_adaptateur_stockage
 
@@ -51,6 +104,9 @@ def obtenir_session(
     yield from gestionnaire.obtenir_session()
 
 
+# --- Dépôts (repositories) ---
+
+
 def obtenir_depot_appels_offre(
     session: Session = Depends(obtenir_session),
 ) -> AppelOffreRepositoryPort:
@@ -65,11 +121,44 @@ def obtenir_depot_documents(
     return DocumentRepositorySQL(session)
 
 
+def obtenir_depot_referentiels(
+    session: Session = Depends(obtenir_session),
+) -> ReferentielRepositoryPort:
+    """Fournit l'implémentation courante du port `ReferentielRepositoryPort`."""
+    return ReferentielRepositorySQL(session)
+
+
+def obtenir_depot_sections(
+    session: Session = Depends(obtenir_session),
+) -> SectionReferentielRepositoryPort:
+    """Fournit l'implémentation courante du port `SectionReferentielRepositoryPort`."""
+    return SectionReferentielRepositorySQL(session)
+
+
+def obtenir_depot_questions_referentiel(
+    session: Session = Depends(obtenir_session),
+) -> QuestionReferentielRepositoryPort:
+    """Fournit l'implémentation courante du port `QuestionReferentielRepositoryPort`."""
+    return QuestionReferentielRepositorySQL(session)
+
+
+def obtenir_depot_referentiels_ao(
+    session: Session = Depends(obtenir_session),
+) -> ReferentielAppelOffreRepositoryPort:
+    """Fournit l'implémentation courante du port `ReferentielAppelOffreRepositoryPort`."""
+    return ReferentielAppelOffreRepositorySQL(session)
+
+
+# --- Appels d'Offres ---
+
+
 def obtenir_cas_usage_creer_appel_offre(
     depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
 ) -> CreerAppelOffre:
     """Fournit le cas d'usage de création d'Appel d'Offres, prêt à l'emploi."""
-    return CreerAppelOffre(depot_appels_offre)
+    return CreerAppelOffre(depot_appels_offre, depot_referentiels, depot_referentiels_ao)
 
 
 def obtenir_cas_usage_lister_appels_offre(
@@ -118,3 +207,132 @@ def obtenir_cas_usage_supprimer_document(
 ) -> SupprimerDocument:
     """Fournit le cas d'usage de suppression d'un document, prêt à l'emploi."""
     return SupprimerDocument(depot_documents, stockage)
+
+
+# --- Référentiels ---
+
+
+def obtenir_cas_usage_creer_referentiel(
+    depot: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+) -> CreerReferentiel:
+    """Fournit le cas d'usage de création d'un référentiel, prêt à l'emploi."""
+    return CreerReferentiel(depot)
+
+
+def obtenir_cas_usage_lister_referentiels(
+    depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+    depot_sections: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+    depot_questions: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+) -> ListerReferentiels:
+    """Fournit le cas d'usage de listing des référentiels, prêt à l'emploi."""
+    return ListerReferentiels(depot_referentiels, depot_sections, depot_questions, depot_referentiels_ao)
+
+
+def obtenir_cas_usage_obtenir_referentiel_detail(
+    depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+    depot_sections: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+    depot_questions: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+) -> ObtenirReferentielDetail:
+    """Fournit le cas d'usage de consultation détaillée d'un référentiel, prêt à l'emploi."""
+    return ObtenirReferentielDetail(
+        depot_referentiels, depot_sections, depot_questions, depot_referentiels_ao
+    )
+
+
+def obtenir_cas_usage_modifier_referentiel(
+    depot: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+) -> ModifierReferentiel:
+    """Fournit le cas d'usage de modification d'un référentiel, prêt à l'emploi."""
+    return ModifierReferentiel(depot)
+
+
+def obtenir_cas_usage_supprimer_referentiel(
+    depot: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+) -> SupprimerReferentiel:
+    """Fournit le cas d'usage de suppression d'un référentiel, prêt à l'emploi."""
+    return SupprimerReferentiel(depot)
+
+
+# --- Sections ---
+
+
+def obtenir_cas_usage_creer_section(
+    depot_sections: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+    depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+) -> CreerSectionReferentiel:
+    """Fournit le cas d'usage de création d'une section, prêt à l'emploi."""
+    return CreerSectionReferentiel(depot_sections, depot_referentiels)
+
+
+def obtenir_cas_usage_modifier_section(
+    depot: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+) -> ModifierSectionReferentiel:
+    """Fournit le cas d'usage de renommage d'une section, prêt à l'emploi."""
+    return ModifierSectionReferentiel(depot)
+
+
+def obtenir_cas_usage_supprimer_section(
+    depot: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+) -> SupprimerSectionReferentiel:
+    """Fournit le cas d'usage de suppression d'une section, prêt à l'emploi."""
+    return SupprimerSectionReferentiel(depot)
+
+
+# --- Questions de référentiel ---
+
+
+def obtenir_cas_usage_creer_question_referentiel(
+    depot_questions: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+    depot_sections: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+) -> CreerQuestionReferentiel:
+    """Fournit le cas d'usage de création d'une question, prêt à l'emploi."""
+    return CreerQuestionReferentiel(depot_questions, depot_sections)
+
+
+def obtenir_cas_usage_modifier_question_referentiel(
+    depot: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+) -> ModifierQuestionReferentiel:
+    """Fournit le cas d'usage de modification d'une question, prêt à l'emploi."""
+    return ModifierQuestionReferentiel(depot)
+
+
+def obtenir_cas_usage_changer_activation_question_referentiel(
+    depot: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+) -> ChangerActivationQuestionReferentiel:
+    """Fournit le cas d'usage d'archivage/réactivation d'une question, prêt à l'emploi."""
+    return ChangerActivationQuestionReferentiel(depot)
+
+
+def obtenir_cas_usage_supprimer_question_referentiel(
+    depot: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+) -> SupprimerQuestionReferentiel:
+    """Fournit le cas d'usage de suppression d'une question, prêt à l'emploi."""
+    return SupprimerQuestionReferentiel(depot)
+
+
+# --- Rattachement référentiel ↔ Appel d'Offres ---
+
+
+def obtenir_cas_usage_attacher_referentiel(
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+) -> AttacherReferentielAAppelOffre:
+    """Fournit le cas d'usage de rattachement d'un référentiel à un AO, prêt à l'emploi."""
+    return AttacherReferentielAAppelOffre(depot_referentiels_ao, depot_appels_offre, depot_referentiels)
+
+
+def obtenir_cas_usage_detacher_referentiel(
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+) -> DetacherReferentielDeAppelOffre:
+    """Fournit le cas d'usage de détachement d'un référentiel d'un AO, prêt à l'emploi."""
+    return DetacherReferentielDeAppelOffre(depot_referentiels_ao)
+
+
+def obtenir_cas_usage_lister_referentiels_ao(
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+) -> ListerReferentielsAppelOffre:
+    """Fournit le cas d'usage de listing des référentiels rattachés à un AO, prêt à l'emploi."""
+    return ListerReferentielsAppelOffre(depot_referentiels_ao)

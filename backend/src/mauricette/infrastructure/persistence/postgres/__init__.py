@@ -7,10 +7,26 @@ from mauricette.infrastructure.persistence.postgres.base import Base, Gestionnai
 from mauricette.infrastructure.persistence.postgres.document_repository_sql import (
     DocumentRepositorySQL,
 )
+from mauricette.infrastructure.persistence.postgres.question_referentiel_repository_sql import (
+    QuestionReferentielRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.referentiel_appel_offre_repository_sql import (
+    ReferentielAppelOffreRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.referentiel_repository_sql import (
+    ReferentielRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.section_referentiel_repository_sql import (
+    SectionReferentielRepositorySQL,
+)
 
 __all__ = [
     "AppelOffreRepositorySQL",
     "Base",
     "DocumentRepositorySQL",
     "GestionnaireSessions",
+    "QuestionReferentielRepositorySQL",
+    "ReferentielAppelOffreRepositorySQL",
+    "ReferentielRepositorySQL",
+    "SectionReferentielRepositorySQL",
 ]

@@ -1,4 +1,4 @@
-import { Check, Pencil, X } from "lucide-react";
+import { Check, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -8,7 +8,13 @@ import {
   supprimerDocument,
 } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
-import type { AppelOffre, DocumentDepose, StatutAppelOffre } from "../api/types";
+import {
+  attacherReferentiel,
+  detacherReferentiel,
+  listerReferentiels,
+  listerReferentielsDeAppelOffre,
+} from "../api/referentielApi";
+import type { AppelOffre, DocumentDepose, Referentiel, StatutAppelOffre } from "../api/types";
 import { ArborescenceDocuments } from "../components/ArborescenceDocuments";
 import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
@@ -54,6 +60,22 @@ export function PageDetailAppelOffre() {
   const [suivis, setSuivis] = useState<SuiviFichier[]>([]);
   const [suppressionEnCours, setSuppressionEnCours] = useState<Set<string>>(new Set());
 
+  const [referentielsAttaches, setReferentielsAttaches] = useState<Referentiel[]>([]);
+  const [referentielsDisponibles, setReferentielsDisponibles] = useState<Referentiel[]>([]);
+  const [referentielChoisi, setReferentielChoisi] = useState("");
+  const [referentielActionEnCours, setReferentielActionEnCours] = useState(false);
+
+  async function chargerReferentiels() {
+    if (!id) return;
+    const [attaches, tous] = await Promise.all([
+      listerReferentielsDeAppelOffre(id),
+      listerReferentiels(),
+    ]);
+    setReferentielsAttaches(attaches);
+    const idsAttaches = new Set(attaches.map((r) => r.id));
+    setReferentielsDisponibles(tous.map((r) => r.referentiel).filter((r) => !idsAttaches.has(r.id)));
+  }
+
   useEffect(() => {
     if (!id) return;
     let annule = false;
@@ -72,10 +94,42 @@ export function PageDetailAppelOffre() {
         if (!annule) setChargement(false);
       });
 
+    chargerReferentiels().catch((e) => {
+      if (!annule) setErreur(e instanceof ErreurApi ? e.message : "Erreur de chargement des référentiels");
+    });
+
     return () => {
       annule = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
+
+  async function attacher() {
+    if (!id || !referentielChoisi) return;
+    setReferentielActionEnCours(true);
+    try {
+      await attacherReferentiel(id, referentielChoisi);
+      setReferentielChoisi("");
+      await chargerReferentiels();
+    } catch (e) {
+      setErreur(e instanceof ErreurApi ? e.message : "Erreur lors du rattachement.");
+    } finally {
+      setReferentielActionEnCours(false);
+    }
+  }
+
+  async function detacher(referentielId: string) {
+    if (!id) return;
+    setReferentielActionEnCours(true);
+    try {
+      await detacherReferentiel(id, referentielId);
+      await chargerReferentiels();
+    } catch (e) {
+      setErreur(e instanceof ErreurApi ? e.message : "Erreur lors du détachement.");
+    } finally {
+      setReferentielActionEnCours(false);
+    }
+  }
 
   async function enregistrerNom() {
     if (!id || !nomEnCours.trim() || !appelOffre) return;
@@ -166,6 +220,7 @@ export function PageDetailAppelOffre() {
       {erreur && <p className="message-erreur">{erreur}</p>}
 
       <div className="disposition-detail">
+        <div className="colonne-detail">
         <div className="carte carte--infos-ao">
           {enEditionNom ? (
             <div className="edition-nom">
@@ -241,6 +296,55 @@ export function PageDetailAppelOffre() {
               </dd>
             </div>
           </dl>
+        </div>
+
+        <div className="carte">
+          <h2>Référentiels appliqués</h2>
+          {referentielsAttaches.length === 0 ? (
+            <p className="texte-discret">Aucun référentiel appliqué à cet AO.</p>
+          ) : (
+            <ul className="liste-referentiels-ao">
+              {referentielsAttaches.map((referentiel) => (
+                <li key={referentiel.id}>
+                  <Link to={`/referentiels/${referentiel.id}`}>{referentiel.nom}</Link>
+                  <button
+                    type="button"
+                    className="bouton-icone bouton-icone--annuler"
+                    onClick={() => detacher(referentiel.id)}
+                    disabled={referentielActionEnCours}
+                    title="Retirer ce référentiel"
+                    aria-label={`Retirer ${referentiel.nom}`}
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {referentielsDisponibles.length > 0 && (
+            <div className="ligne-ajout-referentiel">
+              <select
+                value={referentielChoisi}
+                onChange={(e) => setReferentielChoisi(e.target.value)}
+                disabled={referentielActionEnCours}
+              >
+                <option value="">Choisir un référentiel à ajouter...</option>
+                {referentielsDisponibles.map((referentiel) => (
+                  <option key={referentiel.id} value={referentiel.id}>
+                    {referentiel.nom}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={attacher}
+                disabled={referentielActionEnCours || !referentielChoisi}
+              >
+                Ajouter
+              </button>
+            </div>
+          )}
+        </div>
         </div>
 
         <div className="carte carte--documents">

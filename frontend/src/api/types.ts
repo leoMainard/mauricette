@@ -44,3 +44,77 @@ export interface ResultatDepotFichier {
   documents_crees: DocumentDepose[];
   doublons_ignores: string[];
 }
+
+export type FormatReponse =
+  | "oui_non"
+  | "montant"
+  | "date"
+  | "pourcentage"
+  | "liste"
+  | "texte_libre"
+  | "autre";
+
+export interface Referentiel {
+  id: string;
+  nom: string;
+  description: string | null;
+  actif_par_defaut: boolean;
+  date_creation: string;
+  date_maj: string;
+}
+
+/** Un référentiel accompagné de ses statistiques d'utilisation (vue liste). */
+export interface ReferentielAvecStatistiques {
+  referentiel: Referentiel;
+  nombre_sections: number;
+  nombre_questions_actives: number;
+  nombre_ao_concernes: number;
+}
+
+/** Contenu envoyé à la création ou à la modification d'un référentiel. */
+export interface ContenuReferentiel {
+  nom: string;
+  description?: string | null;
+  actif_par_defaut: boolean;
+}
+
+export interface SectionReferentiel {
+  id: string;
+  referentiel_id: string;
+  nom: string;
+  ordre: number;
+  date_creation: string;
+}
+
+export interface QuestionReferentiel {
+  id: string;
+  section_id: string;
+  question: string;
+  format_reponse: FormatReponse;
+  aide_extraction: string | null;
+  obligatoire: boolean;
+  actif: boolean;
+  ordre: number;
+  date_creation: string;
+  date_maj: string;
+}
+
+/** Contenu envoyé à la création ou à la modification d'une question de référentiel. */
+export interface ContenuQuestionReferentiel {
+  question: string;
+  format_reponse: FormatReponse;
+  aide_extraction?: string | null;
+  obligatoire: boolean;
+}
+
+export interface SectionAvecQuestions {
+  section: SectionReferentiel;
+  questions: QuestionReferentiel[];
+}
+
+/** Détail complet d'un référentiel : ses sections (avec leurs questions) et ses statistiques. */
+export interface DetailReferentiel {
+  referentiel: Referentiel;
+  sections: SectionAvecQuestions[];
+  nombre_ao_concernes: number;
+}
