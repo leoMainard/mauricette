@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { listerAppelsOffre } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
 import type { AppelOffreAvecStatistiques, StatutAppelOffre } from "../api/types";
+import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
 
 const LIBELLES_STATUT: Record<StatutAppelOffre, string> = {
@@ -28,6 +29,7 @@ function formaterDate(dateIso: string): string {
 
 /** Page d'accueil : liste des Appels d'Offres, avec recherche par nom. */
 export function PageListeAppelsOffre() {
+  const navigate = useNavigate();
   const [terme, setTerme] = useState("");
   const [appelsOffre, setAppelsOffre] = useState<AppelOffreAvecStatistiques[]>([]);
   const [chargement, setChargement] = useState(true);
@@ -86,36 +88,42 @@ export function PageListeAppelsOffre() {
         </p>
       ) : (
         <div className="carte carte--tableau">
-          <table className="table-documents">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Statut</th>
-                <th>Créé par</th>
-                <th>Créé le</th>
-                <th>Documents</th>
-                <th>Taille</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appelsOffre.map(({ appel_offre, nombre_documents, taille_totale_octets }) => (
-                <tr key={appel_offre.id}>
-                  <td>
-                    <Link to={`/appels-offre/${appel_offre.id}`}>{appel_offre.nom}</Link>
-                  </td>
-                  <td>
-                    <span className={`badge badge--${appel_offre.statut}`}>
-                      {LIBELLES_STATUT[appel_offre.statut]}
-                    </span>
-                  </td>
-                  <td>{appel_offre.cree_par}</td>
-                  <td>{formaterDate(appel_offre.date_creation)}</td>
-                  <td>{nombre_documents}</td>
-                  <td>{formaterTaille(taille_totale_octets)}</td>
+          <div className="tableau-defilant">
+            <table className="table-documents">
+              <thead>
+                <tr>
+                  <th>Nom</th>
+                  <th>Statut</th>
+                  <th>Créé par</th>
+                  <th>Créé le</th>
+                  <th>Documents</th>
+                  <th>Taille</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {appelsOffre.map(({ appel_offre, nombre_documents, taille_totale_octets }) => (
+                  <tr
+                    key={appel_offre.id}
+                    className="ligne-cliquable"
+                    tabIndex={0}
+                    onClick={() => navigate(`/appels-offre/${appel_offre.id}`)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") navigate(`/appels-offre/${appel_offre.id}`);
+                    }}
+                  >
+                    <td className="cellule-nom-ao">{appel_offre.nom}</td>
+                    <td>
+                      <Badge statut={appel_offre.statut} libelle={LIBELLES_STATUT[appel_offre.statut]} />
+                    </td>
+                    <td>{appel_offre.cree_par}</td>
+                    <td>{formaterDate(appel_offre.date_creation)}</td>
+                    <td>{nombre_documents}</td>
+                    <td>{formaterTaille(taille_totale_octets)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
     </Layout>

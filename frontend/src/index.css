@@ -20,7 +20,7 @@
   --bg: #ffffff;
   --bg-alt: #f6fbfd;
   --border: var(--gris-bleu);
-  --code-bg: var(--cyan-soft);
+  --code-bg: #eef1f5;
   --accent: var(--cyan);
   --accent-hover: var(--cyan-hover);
   --accent-bg: var(--cyan-soft);
@@ -52,7 +52,7 @@
     --bg: #0a0f1e;
     --bg-alt: #101a33;
     --border: rgba(101, 216, 244, 0.18);
-    --code-bg: rgba(101, 216, 244, 0.08);
+    --code-bg: rgba(255, 255, 255, 0.07);
     --accent: #65d8f4;
     --accent-hover: #8ee3f8;
     --accent-bg: rgba(101, 216, 244, 0.12);

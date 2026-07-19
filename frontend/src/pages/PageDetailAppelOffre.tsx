@@ -1,3 +1,4 @@
+import { Check, Pencil, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import {
@@ -9,6 +10,7 @@ import {
 import { ErreurApi } from "../api/client";
 import type { AppelOffre, DocumentDepose, StatutAppelOffre } from "../api/types";
 import { ArborescenceDocuments } from "../components/ArborescenceDocuments";
+import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
 import { SuiviDepot, type SuiviFichier } from "../components/SuiviDepot";
 import { ZoneDepotFichiers } from "../components/ZoneDepotFichiers";
@@ -161,92 +163,96 @@ export function PageDetailAppelOffre() {
         </Link>
       }
     >
-      <div className="carte">
-        {enEditionNom ? (
-          <>
-            <input
-              type="text"
-              value={nomEnCours}
-              onChange={(e) => setNomEnCours(e.target.value)}
-              disabled={renommageEnCours}
-            />
-            <div style={{ display: "flex", gap: "8px" }}>
+      {erreur && <p className="message-erreur">{erreur}</p>}
+
+      <div className="disposition-detail">
+        <div className="carte carte--infos-ao">
+          {enEditionNom ? (
+            <div className="edition-nom">
+              <input
+                type="text"
+                value={nomEnCours}
+                onChange={(e) => setNomEnCours(e.target.value)}
+                disabled={renommageEnCours}
+                autoFocus
+              />
               <button
                 type="button"
+                className="bouton-icone bouton-icone--valider"
                 onClick={enregistrerNom}
                 disabled={renommageEnCours || !nomEnCours.trim()}
+                title="Enregistrer"
+                aria-label="Enregistrer le nouveau nom"
               >
-                Enregistrer
+                <Check size={17} />
               </button>
               <button
                 type="button"
-                className="bouton-fantome"
+                className="bouton-icone bouton-icone--annuler"
                 onClick={() => {
                   setEnEditionNom(false);
                   setNomEnCours(appelOffre.nom);
                 }}
                 disabled={renommageEnCours}
+                title="Annuler"
+                aria-label="Annuler le renommage"
               >
-                Annuler
+                <X size={17} />
               </button>
             </div>
-          </>
-        ) : (
-          <div className="carte--resume">
-            <h2>{appelOffre.nom}</h2>
-            <button type="button" className="bouton-fantome" onClick={() => setEnEditionNom(true)}>
-              Renommer
-            </button>
-          </div>
-        )}
+          ) : (
+            <div className="carte--resume">
+              <h2>{appelOffre.nom}</h2>
+              <button
+                type="button"
+                className="bouton-icone"
+                onClick={() => setEnEditionNom(true)}
+                title="Renommer"
+                aria-label="Renommer l'Appel d'Offres"
+              >
+                <Pencil size={16} />
+              </button>
+            </div>
+          )}
 
-        <table className="table-documents">
-          <tbody>
-            <tr>
-              <th>Statut</th>
-              <td>
-                <span className={`badge badge--${appelOffre.statut}`}>
-                  {LIBELLES_STATUT[appelOffre.statut]}
-                </span>
-              </td>
-            </tr>
-            <tr>
-              <th>Créé par</th>
-              <td>{appelOffre.cree_par}</td>
-            </tr>
-            <tr>
-              <th>Créé le</th>
-              <td>{formaterDateHeure(appelOffre.date_creation)}</td>
-            </tr>
-            <tr>
-              <th>Dernière modification</th>
-              <td>{formaterDateHeure(appelOffre.date_maj)}</td>
-            </tr>
-            <tr>
-              <th>Documents</th>
-              <td>
-                {documents.length} ({formaterTaille(tailleTotale)})
-              </td>
-            </tr>
-          </tbody>
-        </table>
+          <dl className="grille-infos">
+            <div className="grille-infos__item">
+              <dt>Statut</dt>
+              <dd>
+                <Badge statut={appelOffre.statut} libelle={LIBELLES_STATUT[appelOffre.statut]} />
+              </dd>
+            </div>
+            <div className="grille-infos__item">
+              <dt>Créé par</dt>
+              <dd>{appelOffre.cree_par}</dd>
+            </div>
+            <div className="grille-infos__item">
+              <dt>Créé le</dt>
+              <dd>{formaterDateHeure(appelOffre.date_creation)}</dd>
+            </div>
+            <div className="grille-infos__item">
+              <dt>Dernière modification</dt>
+              <dd>{formaterDateHeure(appelOffre.date_maj)}</dd>
+            </div>
+            <div className="grille-infos__item">
+              <dt>Documents</dt>
+              <dd>
+                {documents.length} · {formaterTaille(tailleTotale)}
+              </dd>
+            </div>
+          </dl>
+        </div>
 
-        {erreur && <p className="message-erreur">{erreur}</p>}
-      </div>
-
-      <div className="carte">
-        <h2>Ajouter des documents</h2>
-        <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
-        <SuiviDepot suivis={suivis} />
-      </div>
-
-      <div className="carte">
-        <h2>Documents</h2>
-        <ArborescenceDocuments
-          documents={documents}
-          onSupprimer={supprimer}
-          suppressionEnCours={suppressionEnCours}
-        />
+        <div className="carte carte--documents">
+          <h2>Documents</h2>
+          <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
+          <SuiviDepot suivis={suivis} />
+          <ArborescenceDocuments
+            documents={documents}
+            onSupprimer={supprimer}
+            suppressionEnCours={suppressionEnCours}
+          />
+        </div>
       </div>
     </Layout>
   );

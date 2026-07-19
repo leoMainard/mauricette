@@ -1,5 +1,7 @@
+import { Plus } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { LogoMauricette } from "./icones/LogoMauricette";
 
 interface Props {
   children: ReactNode;
@@ -17,10 +19,12 @@ export function Layout({ children, barreSuperieure }: Props) {
     <div className="app-shell">
       <aside className="barre-laterale">
         <Link to="/" className="barre-laterale__marque">
+          <LogoMauricette className="barre-laterale__logo" />
           Mauricette
         </Link>
         <Link to="/appels-offre/nouveau" className="bouton-nouvel-ao">
-          + Nouvel AO
+          <Plus size={18} strokeWidth={2.5} />
+          Nouvel AO
         </Link>
       </aside>
 

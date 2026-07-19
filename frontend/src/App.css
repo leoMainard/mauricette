@@ -17,10 +17,19 @@
 }
 
 .barre-laterale__marque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   color: #ffffff;
-  font-size: 1.25rem;
+  font-size: 1.15rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+}
+
+.barre-laterale__logo {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
 }
 
 .barre-laterale__marque:hover {
@@ -32,11 +41,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   font-weight: 600;
   padding: 11px 16px;
   border-radius: var(--rayon);
   background: var(--accent);
-  color: var(--marine);
+  color: var(--marine-700);
   transition: background-color 0.15s ease;
 }
 
@@ -130,6 +140,7 @@
 }
 
 .carte--resume {
+  display: flex;
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
@@ -144,6 +155,18 @@
 .carte--tableau {
   padding: 0;
   overflow: hidden;
+}
+
+.tableau-defilant {
+  max-height: 480px;
+  overflow-y: auto;
+}
+
+.carte--tableau .table-documents thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--bg-alt);
 }
 
 .carte--tableau .table-documents th:first-child,
@@ -200,10 +223,10 @@
   font: inherit;
   font-weight: 600;
   padding: 11px 22px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--marine);
   border-radius: var(--rayon);
-  background: var(--accent);
-  color: var(--marine);
+  background: var(--marine);
+  color: #ffffff;
   cursor: pointer;
   align-self: flex-start;
   white-space: nowrap;
@@ -211,8 +234,21 @@
 }
 
 .contenu-principal button:hover:not(:disabled) {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
+  background: var(--marine-700);
+  border-color: var(--marine-700);
+}
+
+@media (prefers-color-scheme: dark) {
+  .contenu-principal button {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: var(--marine-700);
+  }
+
+  .contenu-principal button:hover:not(:disabled) {
+    background: var(--accent-hover);
+    border-color: var(--accent-hover);
+  }
 }
 
 .contenu-principal button:active:not(:disabled) {
@@ -380,16 +416,46 @@
   white-space: nowrap;
 }
 
+.ligne-cliquable {
+  cursor: pointer;
+}
+
+.ligne-cliquable:focus-visible {
+  outline: 2px solid var(--accent-border);
+  outline-offset: -2px;
+}
+
+.cellule-nom-ao {
+  font-weight: 600;
+  color: var(--marine);
+}
+
+@media (prefers-color-scheme: dark) {
+  .cellule-nom-ao {
+    color: var(--text-h);
+  }
+}
+
 /* --- Badges de statut --- */
 
 .badge {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   padding: 3px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
   font-weight: 600;
   background: var(--code-bg);
   color: var(--text-discret);
+}
+
+.badge__point {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
 }
 
 .badge--televerse,
@@ -428,6 +494,8 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  max-height: 420px;
+  overflow-y: auto;
 }
 
 .arbre-noeud {
@@ -470,25 +538,108 @@
   }
 }
 
-.arbre-noeud--fichier button {
-  font: inherit;
+.arbre-noeud--fichier .bouton-icone {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+/* --- Page de détail : disposition 2 colonnes --- */
+
+.disposition-detail {
+  display: grid;
+  grid-template-columns: minmax(280px, 360px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 860px) {
+  .disposition-detail {
+    grid-template-columns: 1fr;
+  }
+}
+
+.carte--infos-ao .carte--resume {
+  margin-bottom: 4px;
+}
+
+/* --- Grille d'informations (fiche AO) --- */
+
+.grille-infos {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.grille-infos__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.grille-infos__item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.grille-infos__item dt {
   font-size: 0.8rem;
-  padding: 5px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--rayon);
-  background: transparent;
   color: var(--text-discret);
-  cursor: pointer;
+  font-weight: 500;
+}
+
+.grille-infos__item dd {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-h);
+  text-align: right;
+}
+
+/* --- Édition du nom (renommage inline) --- */
+
+.edition-nom {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.edition-nom input {
+  flex: 1;
+}
+
+/* --- Boutons icône --- */
+
+.bouton-icone {
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 34px !important;
+  height: 34px !important;
+  padding: 0 !important;
+  border-radius: var(--rayon) !important;
+  background: transparent !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-discret) !important;
   flex-shrink: 0;
-  transition: border-color 0.15s ease, color 0.15s ease;
 }
 
-.arbre-noeud--fichier button:hover:not(:disabled) {
-  border-color: var(--erreur);
-  color: var(--erreur);
+.bouton-icone:hover:not(:disabled) {
+  background: var(--code-bg) !important;
+  border-color: var(--gris-bleu-fonce) !important;
+  color: var(--text-h) !important;
 }
 
-.arbre-noeud--fichier button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.bouton-icone--valider:hover:not(:disabled) {
+  border-color: var(--vert) !important;
+  color: var(--vert) !important;
+  background: rgba(0, 150, 133, 0.1) !important;
+}
+
+.bouton-icone--annuler:hover:not(:disabled) {
+  border-color: var(--erreur) !important;
+  color: var(--erreur) !important;
+  background: rgba(209, 55, 42, 0.1) !important;
 }

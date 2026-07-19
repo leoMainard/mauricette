@@ -1,4 +1,6 @@
-import type { DocumentDepose } from "../api/types";
+import { Trash2 } from "lucide-react";
+import type { DocumentDepose, StatutDocument } from "../api/types";
+import { Badge } from "./Badge";
 
 interface Props {
   documents: DocumentDepose[];
@@ -7,6 +9,13 @@ interface Props {
   /** Documents en cours de suppression (affiche un état désactivé). */
   suppressionEnCours?: Set<string>;
 }
+
+const LIBELLES_STATUT: Record<StatutDocument, string> = {
+  en_attente: "En attente",
+  televerse: "Déposé",
+  en_erreur: "Erreur",
+  traite: "Traité",
+};
 
 interface NoeudArbre {
   nom: string;
@@ -72,15 +81,17 @@ function NoeudArborescence({
         <span className="arbre-noeud__icone">📄</span>
         <span className="arbre-noeud__nom">{noeud.nom}</span>
         <span className="texte-discret">{formaterTaille(document.taille_octets)}</span>
-        <span className={`badge badge--${document.statut}`}>{document.statut}</span>
+        <Badge statut={document.statut} libelle={LIBELLES_STATUT[document.statut]} />
         {onSupprimer && (
           <button
             type="button"
+            className="bouton-icone bouton-icone--annuler"
             onClick={() => onSupprimer(document)}
             disabled={enCoursDeSuppression}
+            title="Supprimer"
             aria-label={`Supprimer ${noeud.nom}`}
           >
-            {enCoursDeSuppression ? "..." : "Supprimer"}
+            <Trash2 size={15} />
           </button>
         )}
       </li>
