@@ -4,7 +4,7 @@ import { creerAppelOffre, deposerDocument } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
 import type { DocumentDepose } from "../api/types";
 import { ArborescenceDocuments } from "../components/ArborescenceDocuments";
-import { EnTeteApplication } from "../components/EnTeteApplication";
+import { Layout } from "../components/Layout";
 import { ListeFichiersEnAttente } from "../components/ListeFichiersEnAttente";
 import { SuiviDepot, type SuiviFichier } from "../components/SuiviDepot";
 import { ZoneDepotFichiers } from "../components/ZoneDepotFichiers";
@@ -70,54 +70,49 @@ export function PageNouvelAppelOffre() {
   }
 
   return (
-    <>
-      <EnTeteApplication />
-      <div className="page">
-        <main className="contenu">
-          {!appelOffreCreeId ? (
-            <form onSubmit={creerEtDeposerTout} className="carte">
-              <h2>Nouvel Appel d'Offres</h2>
-              <label htmlFor="nom-ao">Nom de l'Appel d'Offres</label>
-              <input
-                id="nom-ao"
-                type="text"
-                value={nom}
-                onChange={(e) => setNom(e.target.value)}
-                placeholder="ex : Assurance flotte automobile 2026"
-                required
-                disabled={enCours}
-              />
+    <Layout>
+      {!appelOffreCreeId ? (
+        <form onSubmit={creerEtDeposerTout} className="carte">
+          <h2>Nouvel Appel d'Offres</h2>
+          <label htmlFor="nom-ao">Nom de l'Appel d'Offres</label>
+          <input
+            id="nom-ao"
+            type="text"
+            value={nom}
+            onChange={(e) => setNom(e.target.value)}
+            placeholder="ex : Assurance flotte automobile 2026"
+            required
+            disabled={enCours}
+          />
 
-              <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
-              <ListeFichiersEnAttente fichiers={fichiersEnAttente} onRetirer={retirerFichier} />
+          <ZoneDepotFichiers onFichiersAjoutes={ajouterFichiers} />
+          <ListeFichiersEnAttente fichiers={fichiersEnAttente} onRetirer={retirerFichier} />
 
-              {erreurGlobale && <p className="message-erreur">{erreurGlobale}</p>}
+          {erreurGlobale && <p className="message-erreur">{erreurGlobale}</p>}
 
-              <button type="submit" disabled={enCours || !nom.trim()}>
-                {enCours ? "Création en cours..." : "Créer l'Appel d'Offres"}
-              </button>
-            </form>
-          ) : (
-            <>
-              <div className="carte">
-                <h2>Envoi des documents</h2>
-                <SuiviDepot suivis={suivis} />
-              </div>
-              <div className="carte">
-                <h2>Arborescence déposée</h2>
-                <ArborescenceDocuments documents={documentsCrees} />
-              </div>
-              <button
-                type="button"
-                disabled={enCours}
-                onClick={() => navigate(`/appels-offre/${appelOffreCreeId}`)}
-              >
-                {enCours ? "Envoi en cours..." : "Voir l'Appel d'Offres"}
-              </button>
-            </>
-          )}
-        </main>
-      </div>
-    </>
+          <button type="submit" disabled={enCours || !nom.trim()}>
+            {enCours ? "Création en cours..." : "Créer l'Appel d'Offres"}
+          </button>
+        </form>
+      ) : (
+        <>
+          <div className="carte">
+            <h2>Envoi des documents</h2>
+            <SuiviDepot suivis={suivis} />
+          </div>
+          <div className="carte">
+            <h2>Arborescence déposée</h2>
+            <ArborescenceDocuments documents={documentsCrees} />
+          </div>
+          <button
+            type="button"
+            disabled={enCours}
+            onClick={() => navigate(`/appels-offre/${appelOffreCreeId}`)}
+          >
+            {enCours ? "Envoi en cours..." : "Voir l'Appel d'Offres"}
+          </button>
+        </>
+      )}
+    </Layout>
   );
 }

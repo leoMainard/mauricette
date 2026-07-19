@@ -1,48 +1,97 @@
-/* --- Bandeau d'application (pleine largeur, marine) --- */
+/* --- Ossature de l'application --- */
 
-.entete-app {
-  background: linear-gradient(135deg, var(--marine) 0%, var(--marine-700) 100%);
-  padding: 20px 24px;
-}
-
-.entete-app__contenu {
-  max-width: 880px;
-  margin: 0 auto;
+.app-shell {
   display: flex;
-  align-items: baseline;
-  flex-wrap: wrap;
-  gap: 4px 16px;
+  min-height: 100svh;
+  align-items: stretch;
 }
 
-.entete-app__marque {
-  font-size: 1.375rem;
-  font-weight: 700;
+.barre-laterale {
+  width: 232px;
+  flex-shrink: 0;
+  background: linear-gradient(180deg, var(--marine) 0%, var(--marine-700) 100%);
+  padding: 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.barre-laterale__marque {
   color: #ffffff;
+  font-size: 1.25rem;
+  font-weight: 700;
   letter-spacing: -0.01em;
 }
 
-.entete-app__marque:hover {
+.barre-laterale__marque:hover {
   text-decoration: none;
   opacity: 0.9;
 }
 
-.entete-app__slogan {
-  color: var(--cyan-hover);
-  font-size: 0.9rem;
+.bouton-nouvel-ao {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  padding: 11px 16px;
+  border-radius: var(--rayon);
+  background: var(--accent);
+  color: var(--marine);
+  transition: background-color 0.15s ease;
 }
 
-/* --- Structure de page --- */
-
-.page {
-  max-width: 880px;
-  margin: 0 auto;
-  padding: 32px 24px 80px;
+.bouton-nouvel-ao:hover {
+  background: var(--accent-hover);
+  text-decoration: none;
 }
 
-.contenu {
+.zone-principale {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.barre-superieure {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--border);
+}
+
+.champ-recherche {
+  font: inherit;
+  width: 100%;
+  max-width: 360px;
+  padding: 9px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--rayon);
+  background: var(--bg-alt);
+  color: var(--text-h);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.champ-recherche:focus {
+  outline: none;
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+  background: var(--bg);
+}
+
+.contenu-principal {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  padding: 32px;
+  max-width: 1080px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.entete-page h1 {
+  margin-bottom: 4px;
 }
 
 .texte-discret {
@@ -92,7 +141,30 @@
   flex-shrink: 0;
 }
 
-.contenu label {
+.carte--tableau {
+  padding: 0;
+  overflow: hidden;
+}
+
+.carte--tableau .table-documents th:first-child,
+.carte--tableau .table-documents td:first-child {
+  padding-left: 20px;
+}
+
+.carte--tableau .table-documents th:last-child,
+.carte--tableau .table-documents td:last-child {
+  padding-right: 20px;
+}
+
+.carte--tableau .table-documents thead {
+  background: var(--bg-alt);
+}
+
+.carte--tableau .table-documents tbody tr:hover {
+  background: var(--bg-alt);
+}
+
+.contenu-principal label {
   font-size: 0.875rem;
   font-weight: 600;
   color: var(--text-h);
@@ -100,8 +172,8 @@
 
 /* --- Champs de formulaire --- */
 
-.contenu input[type="text"],
-.contenu input[type="search"] {
+.contenu-principal input[type="text"],
+.contenu-principal input[type="search"] {
   font: inherit;
   padding: 11px 14px;
   border: 1px solid var(--border);
@@ -111,8 +183,8 @@
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-.contenu input[type="text"]:focus,
-.contenu input[type="search"]:focus {
+.contenu-principal input[type="text"]:focus,
+.contenu-principal input[type="search"]:focus {
   outline: none;
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px var(--accent-bg);
@@ -124,7 +196,7 @@
 
 /* --- Boutons --- */
 
-.contenu button {
+.contenu-principal button {
   font: inherit;
   font-weight: 600;
   padding: 11px 22px;
@@ -138,16 +210,16 @@
   transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.05s ease;
 }
 
-.contenu button:hover:not(:disabled) {
+.contenu-principal button:hover:not(:disabled) {
   background: var(--accent-hover);
   border-color: var(--accent-hover);
 }
 
-.contenu button:active:not(:disabled) {
+.contenu-principal button:active:not(:disabled) {
   transform: translateY(1px);
 }
 
-.contenu button:disabled {
+.contenu-principal button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
