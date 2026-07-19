@@ -9,11 +9,15 @@ from typing import BinaryIO
 from uuid import UUID, uuid4
 
 from mauricette.domaine.entites.document import Document
-from mauricette.domaine.entites.enums import StatutAppelOffre
+from mauricette.domaine.entites.enums import StatutAppelOffre, TypeTache
 from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurDepotDocument
 from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
+from mauricette.domaine.ports.document_traitement_rag_repository import (
+    DocumentTraitementRagRepositoryPort,
+)
 from mauricette.domaine.ports.stockage_document import StockageDocumentPort
+from mauricette.domaine.ports.tache_traitement_repository import TacheTraitementRepositoryPort
 
 
 @dataclass(frozen=True)
@@ -38,10 +42,14 @@ class DeposerDocument:
         self,
         depot_appels_offre: AppelOffreRepositoryPort,
         depot_documents: DocumentRepositoryPort,
+        depot_traitement_rag: DocumentTraitementRagRepositoryPort,
+        depot_taches: TacheTraitementRepositoryPort,
         stockage: StockageDocumentPort,
     ) -> None:
         self._depot_appels_offre = depot_appels_offre
         self._depot_documents = depot_documents
+        self._depot_traitement_rag = depot_traitement_rag
+        self._depot_taches = depot_taches
         self._stockage = stockage
 
     def executer(self, commande: CommandeDeposerDocument) -> Document:
@@ -78,6 +86,8 @@ class DeposerDocument:
             ) from erreur
 
         self._depot_documents.ajouter(document)
+        self._depot_traitement_rag.creer(document.id, document.appel_offre_id)
+        self._depot_taches.enqueuer(TypeTache.EXTRACTION_DOCUMENT, document.id)
 
         if appel_offre.statut == StatutAppelOffre.BROUILLON:
             appel_offre.passer_en_cours()

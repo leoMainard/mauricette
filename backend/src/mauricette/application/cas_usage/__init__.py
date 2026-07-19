@@ -24,6 +24,10 @@ from mauricette.application.cas_usage.creer_section_referentiel import (
     CommandeCreerSection,
     CreerSectionReferentiel,
 )
+from mauricette.application.cas_usage.decouper_document import (
+    CommandeDecouperDocument,
+    DecouperDocument,
+)
 from mauricette.application.cas_usage.deposer_document import (
     CommandeDeposerDocument,
     DeposerDocument,
@@ -37,6 +41,10 @@ from mauricette.application.cas_usage.detacher_referentiel_appel_offre import (
     CommandeDetacherReferentiel,
     DetacherReferentielDeAppelOffre,
 )
+from mauricette.application.cas_usage.extraire_document import (
+    CommandeExtraireDocument,
+    ExtraireDocument,
+)
 from mauricette.application.cas_usage.lister_appels_offre import (
     AppelOffreAvecStatistiques,
     ListerAppelsOffre,
@@ -48,6 +56,7 @@ from mauricette.application.cas_usage.lister_referentiels import (
 from mauricette.application.cas_usage.lister_referentiels_appel_offre import (
     ListerReferentielsAppelOffre,
 )
+from mauricette.application.cas_usage.lister_reponses_appel_offre import ListerReponsesAppelOffre
 from mauricette.application.cas_usage.modifier_appel_offre import (
     CommandeModifierAppelOffre,
     ModifierAppelOffre,
@@ -68,10 +77,21 @@ from mauricette.application.cas_usage.obtenir_appel_offre import (
     DetailAppelOffre,
     ObtenirAppelOffre,
 )
+from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
+    ObtenirEtatTraitementAppelOffre,
+)
 from mauricette.application.cas_usage.obtenir_referentiel_detail import (
     DetailReferentiel,
     ObtenirReferentielDetail,
     SectionAvecQuestions,
+)
+from mauricette.application.cas_usage.regenerer_reponses_appel_offre import (
+    CommandeRegenererReponsesAppelOffre,
+    RegenererReponsesAppelOffre,
+)
+from mauricette.application.cas_usage.relancer_document import (
+    CommandeRelancerDocument,
+    RelancerDocument,
 )
 from mauricette.application.cas_usage.supprimer_document import (
     CommandeSupprimerDocument,
@@ -84,6 +104,14 @@ from mauricette.application.cas_usage.supprimer_referentiel import SupprimerRefe
 from mauricette.application.cas_usage.supprimer_section_referentiel import (
     SupprimerSectionReferentiel,
 )
+from mauricette.application.cas_usage.valider_reponse import (
+    CommandeValiderReponse,
+    ValiderReponse,
+)
+from mauricette.application.cas_usage.vectoriser_document import (
+    CommandeVectoriserDocument,
+    VectoriserDocument,
+)
 
 __all__ = [
     "AppelOffreAvecStatistiques",
@@ -95,37 +123,51 @@ __all__ = [
     "CommandeCreerQuestionReferentiel",
     "CommandeCreerReferentiel",
     "CommandeCreerSection",
+    "CommandeDecouperDocument",
     "CommandeDeposerDocument",
     "CommandeDeposerFichier",
     "CommandeDetacherReferentiel",
+    "CommandeExtraireDocument",
     "CommandeModifierAppelOffre",
     "CommandeModifierQuestionReferentiel",
     "CommandeModifierReferentiel",
     "CommandeModifierSection",
+    "CommandeRegenererReponsesAppelOffre",
+    "CommandeRelancerDocument",
     "CommandeSupprimerDocument",
+    "CommandeValiderReponse",
+    "CommandeVectoriserDocument",
     "CreerAppelOffre",
     "CreerQuestionReferentiel",
     "CreerReferentiel",
     "CreerSectionReferentiel",
+    "DecouperDocument",
     "DeposerDocument",
     "DeposerFichier",
     "DetacherReferentielDeAppelOffre",
     "DetailAppelOffre",
     "DetailReferentiel",
+    "ExtraireDocument",
     "ListerAppelsOffre",
     "ListerReferentiels",
     "ListerReferentielsAppelOffre",
+    "ListerReponsesAppelOffre",
     "ModifierAppelOffre",
     "ModifierQuestionReferentiel",
     "ModifierReferentiel",
     "ModifierSectionReferentiel",
     "ObtenirAppelOffre",
+    "ObtenirEtatTraitementAppelOffre",
     "ObtenirReferentielDetail",
     "ReferentielAvecStatistiques",
+    "RegenererReponsesAppelOffre",
+    "RelancerDocument",
     "ResultatDepotFichier",
     "SectionAvecQuestions",
     "SupprimerDocument",
     "SupprimerQuestionReferentiel",
     "SupprimerReferentiel",
     "SupprimerSectionReferentiel",
+    "ValiderReponse",
+    "VectoriserDocument",
 ]

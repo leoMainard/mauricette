@@ -36,6 +36,14 @@ function Port-Ouvert {
     return [bool]$resultat
 }
 
+function Processus-DejaLance {
+    # Le worker RAG n'écoute sur aucun port : on le détecte par sa ligne de commande.
+    param([string]$Motif)
+    $procs = Get-CimInstance Win32_Process -Filter "Name = 'python.exe'" |
+        Where-Object { $_.CommandLine -match $Motif }
+    return $procs.Count -gt 0
+}
+
 function Attendre-Port {
     param([int]$Port, [string]$Nom, [int]$TimeoutSecondes = 30)
     Write-Host "  Attente du démarrage de $Nom..." -NoNewline
@@ -58,7 +66,7 @@ Write-Host "=== Mauricette : démarrage des services ===" -ForegroundColor Cyan
 Write-Host ""
 
 # --- 1. PostgreSQL (service Windows) ---
-Write-Host "[1/4] PostgreSQL"
+Write-Host "[1/5] PostgreSQL"
 $service = Get-Service -Name "postgresql*" -ErrorAction SilentlyContinue | Select-Object -First 1
 if ($null -eq $service) {
     Write-Warning "  Aucun service PostgreSQL trouvé sur cette machine. Vérifie qu'il est installé."
@@ -76,7 +84,7 @@ if ($null -eq $service) {
 Write-Host ""
 
 # --- 2. MinIO (stockage documents, compatible S3) ---
-Write-Host "[2/4] MinIO"
+Write-Host "[2/5] MinIO"
 if (Port-Ouvert 9000) {
     Write-Host "  Déjà en cours d'exécution (port 9000)." -ForegroundColor Green
 } else {
@@ -99,7 +107,7 @@ if (Port-Ouvert 9000) {
 Write-Host ""
 
 # --- 3. Backend FastAPI ---
-Write-Host "[3/4] Backend (FastAPI)"
+Write-Host "[3/5] Backend (FastAPI)"
 if (Port-Ouvert 8000) {
     Write-Host "  Déjà en cours d'exécution (port 8000)." -ForegroundColor Green
 } else {
@@ -112,7 +120,7 @@ if (Port-Ouvert 8000) {
 Write-Host ""
 
 # --- 4. Frontend Vite ---
-Write-Host "[4/4] Frontend (Vite)"
+Write-Host "[4/5] Frontend (Vite)"
 if (Port-Ouvert 5173) {
     Write-Host "  Déjà en cours d'exécution (port 5173)." -ForegroundColor Green
 } else {
@@ -121,6 +129,18 @@ if (Port-Ouvert 5173) {
     $commande = "Set-Location '$frontendDir'; npm run dev"
     Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", $commande
     Attendre-Port -Port 5173 -Nom "le frontend" -TimeoutSecondes 60 | Out-Null
+}
+Write-Host ""
+
+# --- 5. Worker RAG (extraction, découpage, embedding des documents) ---
+Write-Host "[5/5] Worker RAG"
+if (Processus-DejaLance -Motif "worker_rag") {
+    Write-Host "  Déjà en cours d'exécution." -ForegroundColor Green
+} else {
+    Write-Host "  Démarrage du worker RAG (nouvelle fenêtre)..."
+    $backendDir = Join-Path $Racine "backend"
+    $commande = "Set-Location '$backendDir'; uv run python -m mauricette.infrastructure.worker.worker_rag"
+    Start-Process powershell.exe -ArgumentList "-NoExit", "-Command", $commande
 }
 Write-Host ""
 
