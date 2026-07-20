@@ -27,6 +27,9 @@ from mauricette.application.cas_usage.detacher_referentiel_appel_offre import (
     DetacherReferentielDeAppelOffre,
 )
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
+from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
+    ObtenirEtatAnalyseAppelOffre,
+)
 from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
     ObtenirEtatTraitementAppelOffre,
 )
@@ -247,9 +250,10 @@ def obtenir_cas_usage_creer_appel_offre(
 def obtenir_cas_usage_lister_appels_offre(
     depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
     depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
 ) -> ListerAppelsOffre:
     """Fournit le cas d'usage de listing des Appels d'Offres, prêt à l'emploi."""
-    return ListerAppelsOffre(depot_appels_offre, depot_documents)
+    return ListerAppelsOffre(depot_appels_offre, depot_documents, depot_taches)
 
 
 def obtenir_cas_usage_modifier_appel_offre(
@@ -474,3 +478,10 @@ def obtenir_cas_usage_reanalyser_appel_offre(
 ) -> ReanalyserAppelOffre:
     """Fournit le cas d'usage de relance manuelle de l'analyse d'un AO, prêt à l'emploi."""
     return ReanalyserAppelOffre(depot_appels_offre, depot_taches)
+
+
+def obtenir_cas_usage_obtenir_etat_analyse_ao(
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
+) -> ObtenirEtatAnalyseAppelOffre:
+    """Fournit le cas d'usage de consultation de l'état de la dernière analyse d'un AO."""
+    return ObtenirEtatAnalyseAppelOffre(depot_taches)

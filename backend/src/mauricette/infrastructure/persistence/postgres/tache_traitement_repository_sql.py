@@ -46,6 +46,41 @@ class TacheTraitementRepositorySQL(TacheTraitementRepositoryPort):
         modele = self._session.execute(requete).scalars().first()
         return tache_traitement_vers_entite(modele) if modele else None
 
+    def obtenir_derniere_tache(
+        self, type_tache: TypeTache, reference_id: UUID
+    ) -> TacheTraitement | None:
+        requete = (
+            select(TacheTraitementModele)
+            .where(
+                TacheTraitementModele.type_tache == type_tache.value,
+                TacheTraitementModele.reference_id == reference_id,
+            )
+            .order_by(TacheTraitementModele.date_creation.desc())
+            .limit(1)
+        )
+        modele = self._session.execute(requete).scalars().first()
+        return tache_traitement_vers_entite(modele) if modele else None
+
+    def lister_reference_ids_en_echec(self, type_tache: TypeTache) -> set[UUID]:
+        rang = (
+            func.row_number()
+            .over(
+                partition_by=TacheTraitementModele.reference_id,
+                order_by=TacheTraitementModele.date_creation.desc(),
+            )
+            .label("rang")
+        )
+        sous_requete = (
+            select(TacheTraitementModele.reference_id, TacheTraitementModele.statut, rang)
+            .where(TacheTraitementModele.type_tache == type_tache.value)
+            .subquery()
+        )
+        requete = select(sous_requete.c.reference_id).where(
+            sous_requete.c.rang == 1,
+            sous_requete.c.statut == StatutTache.ECHEC.value,
+        )
+        return set(self._session.execute(requete).scalars().all())
+
     def reclamer_tache_suivante(self, types_geres: list[TypeTache]) -> TacheTraitement | None:
         requete = (
             select(TacheTraitementModele)

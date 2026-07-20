@@ -8,7 +8,8 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from mauricette.domaine.entites.document_traitement_rag import DocumentTraitementRag
-from mauricette.domaine.entites.enums import StatutEtape
+from mauricette.domaine.entites.enums import StatutEtape, StatutTache
+from mauricette.domaine.entites.tache_traitement import TacheTraitement
 
 
 class EtapeTraitementReponse(BaseModel):
@@ -50,3 +51,15 @@ class DocumentTraitementRagReponse(BaseModel):
             ),
             statut_global=entite.statut_global,
         )
+
+
+class EtatAnalyseReponse(BaseModel):
+    """Représentation HTTP de l'état de la dernière analyse (régénération) d'un AO."""
+
+    statut: StatutTache
+    message_erreur: str | None
+    tentatives: int
+
+    @classmethod
+    def depuis_entite(cls, entite: TacheTraitement) -> "EtatAnalyseReponse":
+        return cls(statut=entite.statut, message_erreur=entite.message_erreur, tentatives=entite.tentatives)

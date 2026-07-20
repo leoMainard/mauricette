@@ -3,7 +3,7 @@
  */
 
 import { requeteJson } from "./client";
-import type { DocumentTraitementRag, ReponseQuestion } from "./types";
+import type { DocumentTraitementRag, EtatAnalyse, ReponseQuestion } from "./types";
 
 export async function obtenirTraitementAppelOffre(
   appelOffreId: string,
@@ -24,6 +24,12 @@ export async function listerReponsesAppelOffre(appelOffreId: string): Promise<Re
 
 export async function reanalyserAppelOffre(appelOffreId: string): Promise<void> {
   return requeteJson<void>(`/appels-offre/${appelOffreId}/reponses/reanalyser`, { method: "POST" });
+}
+
+export async function obtenirEtatAnalyseAppelOffre(
+  appelOffreId: string,
+): Promise<EtatAnalyse | null> {
+  return requeteJson<EtatAnalyse | null>(`/appels-offre/${appelOffreId}/reponses/etat-analyse`);
 }
 
 export async function validerReponse(reponseId: string): Promise<ReponseQuestion> {

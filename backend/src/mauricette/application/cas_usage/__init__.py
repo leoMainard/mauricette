@@ -77,6 +77,9 @@ from mauricette.application.cas_usage.obtenir_appel_offre import (
     DetailAppelOffre,
     ObtenirAppelOffre,
 )
+from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
+    ObtenirEtatAnalyseAppelOffre,
+)
 from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
     ObtenirEtatTraitementAppelOffre,
 )
@@ -162,6 +165,7 @@ __all__ = [
     "ModifierReferentiel",
     "ModifierSectionReferentiel",
     "ObtenirAppelOffre",
+    "ObtenirEtatAnalyseAppelOffre",
     "ObtenirEtatTraitementAppelOffre",
     "ObtenirReferentielDetail",
     "ReanalyserAppelOffre",

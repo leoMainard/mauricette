@@ -29,6 +29,25 @@ class TacheTraitementRepositoryPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def obtenir_derniere_tache(
+        self, type_tache: TypeTache, reference_id: UUID
+    ) -> TacheTraitement | None:
+        """Retourne la tâche la plus récente pour ce type/cette référence, quel que soit son statut.
+
+        Utilisé pour savoir si une régénération en cours a échoué définitivement
+        (le statut de l'AO seul ne le distingue pas d'un traitement toujours actif).
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def lister_reference_ids_en_echec(self, type_tache: TypeTache) -> set[UUID]:
+        """Retourne les références (ex: ids d'AO) dont la tâche la plus récente de ce
+        type est en échec définitif. Une seule requête agrégée (pas de N+1), utilisée
+        pour signaler les AO en erreur d'analyse dans la liste des Appels d'Offres.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def reclamer_tache_suivante(self, types_geres: list[TypeTache]) -> TacheTraitement | None:
         """Réserve atomiquement la prochaine tâche éligible (`EN_ATTENTE`, échéance passée).
 

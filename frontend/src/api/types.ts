@@ -37,6 +37,7 @@ export interface AppelOffreAvecStatistiques {
   appel_offre: AppelOffre;
   nombre_documents: number;
   taille_totale_octets: number;
+  en_erreur_analyse: boolean;
 }
 
 /** Bilan du dépôt d'un fichier : documents créés (peut être plusieurs si zip) et doublons ignorés. */
@@ -134,6 +135,15 @@ export interface DocumentTraitementRag {
   decoupage: EtapeTraitement;
   embedding: EtapeTraitement;
   statut_global: StatutEtape;
+}
+
+export type StatutTache = "en_attente" | "en_cours" | "reussi" | "echec";
+
+/** État de la dernière analyse (régénération des réponses) déclenchée pour un AO. */
+export interface EtatAnalyse {
+  statut: StatutTache;
+  message_erreur: string | null;
+  tentatives: number;
 }
 
 export type StatutReponse = "generee" | "valide_utilisateur";

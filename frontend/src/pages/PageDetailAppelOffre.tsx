@@ -17,6 +17,7 @@ import {
 } from "../api/referentielApi";
 import {
   listerReponsesAppelOffre,
+  obtenirEtatAnalyseAppelOffre,
   obtenirTraitementAppelOffre,
   reanalyserAppelOffre,
   relancerDocument,
@@ -27,6 +28,7 @@ import type {
   DetailReferentiel,
   DocumentDepose,
   DocumentTraitementRag,
+  EtatAnalyse,
   Referentiel,
   ReponseQuestion,
   StatutAppelOffre,
@@ -96,6 +98,7 @@ export function PageDetailAppelOffre() {
   const [chargementQuestions, setChargementQuestions] = useState(true);
   const [validationEnCoursId, setValidationEnCoursId] = useState<string | null>(null);
   const [declenchementReanalyseEnCours, setDeclenchementReanalyseEnCours] = useState(false);
+  const [etatAnalyse, setEtatAnalyse] = useState<EtatAnalyse | null>(null);
 
   async function chargerQuestions(referentiels: Referentiel[]) {
     if (!id) return;
@@ -148,6 +151,20 @@ export function PageDetailAppelOffre() {
       if (!annule) setErreur(e instanceof ErreurApi ? e.message : "Erreur de chargement des référentiels");
     });
 
+    obtenirEtatAnalyseAppelOffre(id)
+      .then((etat) => {
+        if (annule) return;
+        setEtatAnalyse(etat);
+        if (etat?.statut === "echec") {
+          setErreur(
+            `La dernière analyse a échoué : ${etat.message_erreur ?? "raison inconnue"}. Réessaie avec "Ré-analyser".`,
+          );
+        }
+      })
+      .catch(() => {
+        // Amélioration d'affichage : une erreur ici ne doit pas bloquer la page.
+      });
+
     return () => {
       annule = true;
     };
@@ -195,29 +212,55 @@ export function PageDetailAppelOffre() {
 
   // Tant que l'AO est "en cours" (analyse en cours, ex: après une ré-analyse
   // manuelle), sonde périodiquement son statut et rafraîchit les réponses dès
-  // que l'analyse se termine. S'arrête naturellement dès que le statut change.
+  // que l'analyse se termine. Le sondage se reprogramme lui-même (pas via les
+  // dépendances de l'effet) : sans ça, si le statut est toujours "en cours" au
+  // premier sondage, l'effet ne se redéclencherait jamais (dépendance inchangée).
+  // `versionTraitement` force un redémarrage même si le statut ne change pas de
+  // valeur (ex: relancer une analyse alors que l'AO était déjà bloqué "en cours").
   useEffect(() => {
     if (!id || appelOffre?.statut !== "en_cours") return;
     let annule = false;
-    const minuteur = setTimeout(async () => {
+    let minuteur: ReturnType<typeof setTimeout> | undefined;
+
+    async function sonder() {
       try {
-        const detail = await obtenirAppelOffre(id);
+        const [detail, etatAnalyse] = await Promise.all([
+          obtenirAppelOffre(id!),
+          obtenirEtatAnalyseAppelOffre(id!),
+        ]);
         if (annule) return;
         setAppelOffre(detail.appel_offre);
-        if (detail.appel_offre.statut !== "en_cours") {
+        setEtatAnalyse(etatAnalyse);
+
+        // Le statut "en cours" seul ne distingue pas un traitement toujours actif
+        // d'un échec définitif (le statut de l'AO ne revient pas en arrière tout
+        // seul) : sans cette vérification, un échec ferait sonder indéfiniment.
+        if (etatAnalyse?.statut === "echec") {
+          setErreur(
+            `La dernière analyse a échoué : ${etatAnalyse.message_erreur ?? "raison inconnue"}. Réessaie avec "Ré-analyser".`,
+          );
           await chargerQuestions(referentielsAttaches);
+          return;
         }
+
+        if (detail.appel_offre.statut === "en_cours") {
+          minuteur = setTimeout(sonder, INTERVALLE_SONDAGE_TRAITEMENT_MS);
+          return;
+        }
+        await chargerQuestions(referentielsAttaches);
       } catch {
         // Amélioration d'affichage : une erreur ici ne doit pas bloquer la page.
       }
-    }, INTERVALLE_SONDAGE_TRAITEMENT_MS);
+    }
+
+    minuteur = setTimeout(sonder, INTERVALLE_SONDAGE_TRAITEMENT_MS);
 
     return () => {
       annule = true;
-      clearTimeout(minuteur);
+      if (minuteur) clearTimeout(minuteur);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, appelOffre?.statut]);
+  }, [id, appelOffre?.statut, versionTraitement]);
 
   async function reanalyser() {
     if (!id) return;
@@ -226,6 +269,12 @@ export function PageDetailAppelOffre() {
       await reanalyserAppelOffre(id);
       const detail = await obtenirAppelOffre(id);
       setAppelOffre(detail.appel_offre);
+      // L'ancien échec n'est plus pertinent : une nouvelle analyse vient d'être lancée.
+      setEtatAnalyse(null);
+      setErreur(null);
+      // Force le redémarrage du sondage même si le statut de l'AO ne change pas de
+      // valeur (il était peut-être déjà "en cours" suite à un précédent échec).
+      setVersionTraitement((v) => v + 1);
     } catch (e) {
       setErreur(e instanceof ErreurApi ? e.message : "Erreur lors du déclenchement de la ré-analyse.");
     } finally {
@@ -385,6 +434,12 @@ export function PageDetailAppelOffre() {
         .filter((q) => q.actif && reponsesParQuestion.get(q.id)?.contenu).length,
     0,
   );
+  // "en cours" seul ne suffit pas : un échec définitif laisse l'AO bloqué dans cet
+  // état sans jamais en sortir tout seul, sans quoi le bouton resterait grisé indéfiniment.
+  const enErreurAnalyse = appelOffre.statut === "en_cours" && etatAnalyse?.statut === "echec";
+  const analyseReellementEnCours = appelOffre.statut === "en_cours" && !enErreurAnalyse;
+  const statutBadge = enErreurAnalyse ? "en_erreur" : appelOffre.statut;
+  const libelleBadge = enErreurAnalyse ? "Erreur d'analyse" : LIBELLES_STATUT[appelOffre.statut];
 
   return (
     <Layout
@@ -433,7 +488,7 @@ export function PageDetailAppelOffre() {
         ) : (
           <div className="entete-fiche-ao__titre">
             <h1>{appelOffre.nom}</h1>
-            <Badge statut={appelOffre.statut} libelle={LIBELLES_STATUT[appelOffre.statut]} />
+            <Badge statut={statutBadge} libelle={libelleBadge} />
             <button
               type="button"
               className="bouton-icone"
@@ -503,7 +558,7 @@ export function PageDetailAppelOffre() {
           reponsesParQuestion={reponsesParQuestion}
           validationEnCoursId={validationEnCoursId}
           onValider={valider}
-          reanalyseEnCours={declenchementReanalyseEnCours || appelOffre.statut === "en_cours"}
+          reanalyseEnCours={declenchementReanalyseEnCours || analyseReellementEnCours}
           onReanalyser={reanalyser}
         />
       )}

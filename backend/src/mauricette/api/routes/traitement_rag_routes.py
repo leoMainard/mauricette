@@ -8,14 +8,18 @@ from fastapi import APIRouter, Depends, HTTPException, status
 
 from mauricette.api.dependances import (
     obtenir_cas_usage_lister_reponses_ao,
+    obtenir_cas_usage_obtenir_etat_analyse_ao,
     obtenir_cas_usage_obtenir_etat_traitement_ao,
     obtenir_cas_usage_reanalyser_appel_offre,
     obtenir_cas_usage_relancer_document,
     obtenir_cas_usage_valider_reponse,
 )
 from mauricette.api.schemas.reponse_question_schemas import ReponseQuestionReponse
-from mauricette.api.schemas.traitement_rag_schemas import DocumentTraitementRagReponse
+from mauricette.api.schemas.traitement_rag_schemas import DocumentTraitementRagReponse, EtatAnalyseReponse
 from mauricette.application.cas_usage.lister_reponses_appel_offre import ListerReponsesAppelOffre
+from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
+    ObtenirEtatAnalyseAppelOffre,
+)
 from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
     ObtenirEtatTraitementAppelOffre,
 )
@@ -68,6 +72,16 @@ def reanalyser(
         cas_usage.executer(CommandeReanalyserAppelOffre(appel_offre_id=appel_offre_id))
     except EntiteIntrouvable as erreur:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
+
+
+@routeur.get("/reponses/etat-analyse", response_model=EtatAnalyseReponse | None)
+def obtenir_etat_analyse(
+    appel_offre_id: UUID,
+    cas_usage: ObtenirEtatAnalyseAppelOffre = Depends(obtenir_cas_usage_obtenir_etat_analyse_ao),
+) -> EtatAnalyseReponse | None:
+    """Retourne l'état de la dernière analyse (régénération) déclenchée pour l'Appel d'Offres."""
+    tache = cas_usage.executer(appel_offre_id)
+    return EtatAnalyseReponse.depuis_entite(tache) if tache else None
 
 
 @routeur.get("/reponses", response_model=list[ReponseQuestionReponse])
