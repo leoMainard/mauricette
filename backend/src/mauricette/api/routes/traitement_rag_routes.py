@@ -9,6 +9,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from mauricette.api.dependances import (
     obtenir_cas_usage_lister_reponses_ao,
     obtenir_cas_usage_obtenir_etat_traitement_ao,
+    obtenir_cas_usage_reanalyser_appel_offre,
     obtenir_cas_usage_relancer_document,
     obtenir_cas_usage_valider_reponse,
 )
@@ -17,6 +18,10 @@ from mauricette.api.schemas.traitement_rag_schemas import DocumentTraitementRagR
 from mauricette.application.cas_usage.lister_reponses_appel_offre import ListerReponsesAppelOffre
 from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
     ObtenirEtatTraitementAppelOffre,
+)
+from mauricette.application.cas_usage.reanalyser_appel_offre import (
+    CommandeReanalyserAppelOffre,
+    ReanalyserAppelOffre,
 )
 from mauricette.application.cas_usage.relancer_document import (
     CommandeRelancerDocument,
@@ -51,6 +56,18 @@ def relancer_traitement_document(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
     except ErreurEtatTraitementInvalide as erreur:
         raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(erreur)) from erreur
+
+
+@routeur.post("/reponses/reanalyser", status_code=status.HTTP_202_ACCEPTED)
+def reanalyser(
+    appel_offre_id: UUID,
+    cas_usage: ReanalyserAppelOffre = Depends(obtenir_cas_usage_reanalyser_appel_offre),
+) -> None:
+    """Déclenche manuellement une régénération complète des réponses de l'Appel d'Offres."""
+    try:
+        cas_usage.executer(CommandeReanalyserAppelOffre(appel_offre_id=appel_offre_id))
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
 
 
 @routeur.get("/reponses", response_model=list[ReponseQuestionReponse])

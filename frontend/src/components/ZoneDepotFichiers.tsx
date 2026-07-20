@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { EXTENSIONS_DOCUMENTS_ACCEPTEES } from "../constantesDocuments";
 
 interface Props {
   /** Appelé avec les fichiers ajoutés par glisser-déposer ou sélection manuelle. */
@@ -43,6 +44,7 @@ export function ZoneDepotFichiers({ onFichiersAjoutes }: Props) {
         type="file"
         multiple
         hidden
+        accept={EXTENSIONS_DOCUMENTS_ACCEPTEES}
         onChange={(e) => {
           ajouter(e.target.files);
           e.target.value = "";

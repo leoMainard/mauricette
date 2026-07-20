@@ -13,8 +13,10 @@ from uuid import UUID
 
 from mauricette.config.parametres import Parametres
 from mauricette.domaine.entites.document import Document
+from mauricette.domaine.entites.enums import StatutAppelOffre
 from mauricette.domaine.entites.question_referentiel import QuestionReferentiel
 from mauricette.domaine.entites.reponse_question import Citation, ReponseQuestion
+from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.chunk_repository import ChunkRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
 from mauricette.domaine.ports.embedding import EmbeddingPort
@@ -40,6 +42,7 @@ class RegenererReponsesAppelOffre:
 
     def __init__(
         self,
+        depot_appels_offre: AppelOffreRepositoryPort,
         depot_referentiels_ao: ReferentielAppelOffreRepositoryPort,
         depot_questions: QuestionReferentielRepositoryPort,
         depot_documents: DocumentRepositoryPort,
@@ -49,6 +52,7 @@ class RegenererReponsesAppelOffre:
         generation: GenerationReponsePort,
         parametres: Parametres,
     ) -> None:
+        self._depot_appels_offre = depot_appels_offre
         self._depot_referentiels_ao = depot_referentiels_ao
         self._depot_questions = depot_questions
         self._depot_documents = depot_documents
@@ -80,6 +84,14 @@ class RegenererReponsesAppelOffre:
         ]
 
         self._depot_reponses.remplacer_pour_appel_offre(appel_offre_id, nouvelles_reponses)
+
+        # La régénération est la dernière étape du pipeline RAG : une fois les réponses
+        # calculées, l'AO est considéré comme traité (transition douce, jamais de retour
+        # en arrière automatique si l'AO a déjà été archivé ou traité manuellement).
+        appel_offre = self._depot_appels_offre.obtenir_par_id(appel_offre_id)
+        if appel_offre is not None and appel_offre.statut == StatutAppelOffre.EN_COURS:
+            appel_offre.marquer_traite()
+            self._depot_appels_offre.mettre_a_jour(appel_offre)
 
     def _repondre_a_une_question(
         self,

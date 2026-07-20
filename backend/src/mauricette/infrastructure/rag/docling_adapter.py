@@ -27,8 +27,22 @@ from mauricette.domaine.ports.extracteur_document import (
 )
 
 # Extensions vérifiées avant tout appel à Docling : évite une conversion longue
-# et vouée à l'échec sur un format manifestement non supporté.
-EXTENSIONS_SUPPORTEES = {".pdf", ".docx", ".pptx", ".xlsx", ".html", ".htm", ".md"}
+# et vouée à l'échec sur un format manifestement non supporté. Docling gère en
+# réalité une liste bien plus large (audio, vidéo, XML scientifiques...), sans
+# intérêt pour des documents d'Appel d'Offres : on ne retient ici que les
+# formats plausibles pour ce contexte (bureautique, web, texte, images scannées).
+EXTENSIONS_SUPPORTEES = {
+    ".pdf",
+    ".docx", ".dotx", ".docm", ".dotm",
+    ".xlsx", ".xlsm",
+    ".pptx", ".potx", ".ppsx", ".pptm", ".potm", ".ppsm",
+    ".odt", ".ott", ".ods", ".ots", ".odp", ".otp",
+    ".html", ".htm", ".xhtml",
+    ".md", ".txt", ".text",
+    ".csv",
+    ".epub",
+    ".jpg", ".jpeg", ".png", ".tif", ".tiff", ".bmp", ".webp",
+}
 
 # Titres/sections : ces labels marquent une nouvelle position dans la hiérarchie
 # du document, utilisée pour construire le fil d'ariane (`titre_section`).

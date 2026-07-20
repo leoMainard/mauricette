@@ -61,6 +61,10 @@ def executer_boucle(parametres: Parametres) -> None:
                 depot_taches.marquer_reussie(tache.id)
                 logger.info("Tâche réussie : %s", tache.id)
             except ErreurTraitementTransitoire as erreur:
+                # Toute exception a pu survenir en cours de flush SQLAlchemy : la session
+                # doit être annulée avant de pouvoir réutiliser `depot_taches` sur cette
+                # même session (sans quoi SQLAlchemy lève PendingRollbackError).
+                session.rollback()
                 if tache.tentatives >= parametres.rag_nombre_max_tentatives_tache:
                     depot_taches.marquer_echouee(tache.id, str(erreur))
                     logger.warning(
@@ -75,9 +79,11 @@ def executer_boucle(parametres: Parametres) -> None:
                     )
                     logger.warning("Tâche %s remise en attente (erreur transitoire) : %s", tache.id, erreur)
             except ErreurTraitementDefinitive as erreur:
+                session.rollback()
                 depot_taches.marquer_echouee(tache.id, str(erreur))
                 logger.warning("Tâche %s en échec définitif : %s", tache.id, erreur)
             except Exception as erreur:  # filet de sécurité : ne jamais interrompre la boucle
+                session.rollback()
                 depot_taches.marquer_echouee(tache.id, str(erreur))
                 logger.exception("Tâche %s en échec inattendu", tache.id)
         finally:

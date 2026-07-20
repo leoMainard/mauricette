@@ -26,6 +26,10 @@ Réponds strictement en JSON valide, avec ce format exact :
 effectivement utilisés pour répondre>]}
 
 Règles :
+- "reponse" doit TOUJOURS être une simple chaîne de texte (ou null), jamais un objet ou une liste JSON \
+imbriquée — même si l'information comporte plusieurs éléments (plusieurs dates, plusieurs garanties...). \
+Dans ce cas, énumère-les dans le texte lui-même, séparés par des virgules ou des retours à la ligne \
+(ex: "24/11/2025 : date limite de réception ; 01/01/2026 : début du marché").
 - Si l'information n'est présente dans aucun extrait, "reponse" doit être null, "score_confiance" 0.0 \
 et "indices_extraits_utilises" une liste vide.
 - Si l'information est claire et non ambiguë, utilise un score de confiance élevé (proche de 1).
@@ -101,6 +105,11 @@ class MistralGenerationAdapter(GenerationReponsePort):
         try:
             donnees = json.loads(contenu_brut)
             contenu = donnees.get("reponse")
+            # Le modèle suit généralement la consigne (une chaîne), mais renvoie parfois
+            # une structure JSON (liste/dict) pour des réponses naturellement composites
+            # (ex: une liste de dates) : on la sérialise pour respecter le contrat "texte".
+            if contenu is not None and not isinstance(contenu, str):
+                contenu = json.dumps(contenu, ensure_ascii=False)
             score_confiance = float(donnees.get("score_confiance", 0.0))
             indices = donnees.get("indices_extraits_utilises", []) or []
         except (json.JSONDecodeError, TypeError, ValueError) as erreur:

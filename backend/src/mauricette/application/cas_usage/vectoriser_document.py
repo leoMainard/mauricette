@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from mauricette.domaine.entites.enums import TypeTache
+from mauricette.application.cas_usage.declencher_regeneration_reponses import (
+    declencher_regeneration_reponses,
+)
 from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurTraitementDefinitive, ErreurTraitementTransitoire
+from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.chunk_repository import ChunkRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
 from mauricette.domaine.ports.document_traitement_rag_repository import (
@@ -33,12 +36,14 @@ class VectoriserDocument:
 
     def __init__(
         self,
+        depot_appels_offre: AppelOffreRepositoryPort,
         depot_documents: DocumentRepositoryPort,
         depot_traitement_rag: DocumentTraitementRagRepositoryPort,
         depot_chunks: ChunkRepositoryPort,
         depot_taches: TacheTraitementRepositoryPort,
         embedding: EmbeddingPort,
     ) -> None:
+        self._depot_appels_offre = depot_appels_offre
         self._depot_documents = depot_documents
         self._depot_traitement_rag = depot_traitement_rag
         self._depot_chunks = depot_chunks
@@ -74,8 +79,4 @@ class VectoriserDocument:
         traitement.reussir_embedding()
         self._depot_traitement_rag.mettre_a_jour(traitement)
 
-        tache_existante = self._depot_taches.obtenir_en_cours_ou_en_attente(
-            TypeTache.REGENERATION_REPONSES_AO, document.appel_offre_id
-        )
-        if tache_existante is None:
-            self._depot_taches.enqueuer(TypeTache.REGENERATION_REPONSES_AO, document.appel_offre_id)
+        declencher_regeneration_reponses(document.appel_offre_id, self._depot_appels_offre, self._depot_taches)

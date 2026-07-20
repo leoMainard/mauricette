@@ -37,6 +37,9 @@ from mauricette.domaine.ports.embedding import EmbeddingPort
 from mauricette.domaine.ports.extracteur_document import ExtracteurDocumentPort
 from mauricette.domaine.ports.generation_reponse import GenerationReponsePort
 from mauricette.domaine.ports.stockage_document import StockageDocumentPort
+from mauricette.infrastructure.persistence.postgres.appel_offre_repository_sql import (
+    AppelOffreRepositorySQL,
+)
 from mauricette.infrastructure.persistence.postgres.chunk_repository_sql import ChunkRepositorySQL
 from mauricette.infrastructure.persistence.postgres.document_repository_sql import (
     DocumentRepositorySQL,
@@ -89,6 +92,7 @@ def construire_gestionnaires_par_type(
     session: Session, adaptateurs: AdaptateursRag, parametres: Parametres
 ) -> dict[TypeTache, Callable[[UUID], None]]:
     """Construit, pour la session donnée, la fonction à exécuter pour chaque type de tâche."""
+    depot_appels_offre = AppelOffreRepositorySQL(session)
     depot_documents = DocumentRepositorySQL(session)
     depot_traitement_rag = DocumentTraitementRagRepositorySQL(session)
     depot_chunks = ChunkRepositorySQL(session)
@@ -113,9 +117,10 @@ def construire_gestionnaires_par_type(
         adaptateurs.decoupeur,
     )
     vectoriser = VectoriserDocument(
-        depot_documents, depot_traitement_rag, depot_chunks, depot_taches, adaptateurs.embedding
+        depot_appels_offre, depot_documents, depot_traitement_rag, depot_chunks, depot_taches, adaptateurs.embedding
     )
     regenerer = RegenererReponsesAppelOffre(
+        depot_appels_offre,
         depot_referentiels_ao,
         depot_questions,
         depot_documents,

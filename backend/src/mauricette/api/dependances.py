@@ -30,6 +30,7 @@ from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOff
 from mauricette.application.cas_usage.obtenir_etat_traitement_appel_offre import (
     ObtenirEtatTraitementAppelOffre,
 )
+from mauricette.application.cas_usage.reanalyser_appel_offre import ReanalyserAppelOffre
 from mauricette.application.cas_usage.relancer_document import RelancerDocument
 from mauricette.application.cas_usage.lister_referentiels import ListerReferentiels
 from mauricette.application.cas_usage.lister_referentiels_appel_offre import (
@@ -288,12 +289,13 @@ def obtenir_cas_usage_deposer_fichier(
 
 
 def obtenir_cas_usage_supprimer_document(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
     depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
     depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
     stockage: StockageDocumentPort = Depends(obtenir_stockage),
 ) -> SupprimerDocument:
     """Fournit le cas d'usage de suppression d'un document, prêt à l'emploi."""
-    return SupprimerDocument(depot_documents, depot_taches, stockage)
+    return SupprimerDocument(depot_appels_offre, depot_documents, depot_taches, stockage)
 
 
 # --- Référentiels ---
@@ -406,16 +408,21 @@ def obtenir_cas_usage_attacher_referentiel(
     depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
     depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
     depot_referentiels: ReferentielRepositoryPort = Depends(obtenir_depot_referentiels),
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
 ) -> AttacherReferentielAAppelOffre:
     """Fournit le cas d'usage de rattachement d'un référentiel à un AO, prêt à l'emploi."""
-    return AttacherReferentielAAppelOffre(depot_referentiels_ao, depot_appels_offre, depot_referentiels)
+    return AttacherReferentielAAppelOffre(
+        depot_referentiels_ao, depot_appels_offre, depot_referentiels, depot_taches
+    )
 
 
 def obtenir_cas_usage_detacher_referentiel(
     depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
 ) -> DetacherReferentielDeAppelOffre:
     """Fournit le cas d'usage de détachement d'un référentiel d'un AO, prêt à l'emploi."""
-    return DetacherReferentielDeAppelOffre(depot_referentiels_ao)
+    return DetacherReferentielDeAppelOffre(depot_referentiels_ao, depot_appels_offre, depot_taches)
 
 
 def obtenir_cas_usage_lister_referentiels_ao(
@@ -459,3 +466,11 @@ def obtenir_cas_usage_valider_reponse(
 ) -> ValiderReponse:
     """Fournit le cas d'usage de validation manuelle d'une réponse générée."""
     return ValiderReponse(depot_reponses)
+
+
+def obtenir_cas_usage_reanalyser_appel_offre(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
+) -> ReanalyserAppelOffre:
+    """Fournit le cas d'usage de relance manuelle de l'analyse d'un AO, prêt à l'emploi."""
+    return ReanalyserAppelOffre(depot_appels_offre, depot_taches)

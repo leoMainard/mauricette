@@ -5,8 +5,11 @@ from __future__ import annotations
 from dataclasses import dataclass
 from uuid import UUID
 
-from mauricette.domaine.entites.enums import TypeTache
+from mauricette.application.cas_usage.declencher_regeneration_reponses import (
+    declencher_regeneration_reponses,
+)
 from mauricette.domaine.exceptions import EntiteIntrouvable
+from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort
 from mauricette.domaine.ports.stockage_document import StockageDocumentPort
 from mauricette.domaine.ports.tache_traitement_repository import TacheTraitementRepositoryPort
@@ -31,10 +34,12 @@ class SupprimerDocument:
 
     def __init__(
         self,
+        depot_appels_offre: AppelOffreRepositoryPort,
         depot_documents: DocumentRepositoryPort,
         depot_taches: TacheTraitementRepositoryPort,
         stockage: StockageDocumentPort,
     ) -> None:
+        self._depot_appels_offre = depot_appels_offre
         self._depot_documents = depot_documents
         self._depot_taches = depot_taches
         self._stockage = stockage
@@ -49,8 +54,4 @@ class SupprimerDocument:
         self._stockage.supprimer(document.cle_stockage)
         self._depot_documents.supprimer(document.id)
 
-        tache_existante = self._depot_taches.obtenir_en_cours_ou_en_attente(
-            TypeTache.REGENERATION_REPONSES_AO, document.appel_offre_id
-        )
-        if tache_existante is None:
-            self._depot_taches.enqueuer(TypeTache.REGENERATION_REPONSES_AO, document.appel_offre_id)
+        declencher_regeneration_reponses(document.appel_offre_id, self._depot_appels_offre, self._depot_taches)

@@ -85,6 +85,10 @@ from mauricette.application.cas_usage.obtenir_referentiel_detail import (
     ObtenirReferentielDetail,
     SectionAvecQuestions,
 )
+from mauricette.application.cas_usage.reanalyser_appel_offre import (
+    CommandeReanalyserAppelOffre,
+    ReanalyserAppelOffre,
+)
 from mauricette.application.cas_usage.regenerer_reponses_appel_offre import (
     CommandeRegenererReponsesAppelOffre,
     RegenererReponsesAppelOffre,
@@ -132,6 +136,7 @@ __all__ = [
     "CommandeModifierQuestionReferentiel",
     "CommandeModifierReferentiel",
     "CommandeModifierSection",
+    "CommandeReanalyserAppelOffre",
     "CommandeRegenererReponsesAppelOffre",
     "CommandeRelancerDocument",
     "CommandeSupprimerDocument",
@@ -159,6 +164,7 @@ __all__ = [
     "ObtenirAppelOffre",
     "ObtenirEtatTraitementAppelOffre",
     "ObtenirReferentielDetail",
+    "ReanalyserAppelOffre",
     "ReferentielAvecStatistiques",
     "RegenererReponsesAppelOffre",
     "RelancerDocument",
