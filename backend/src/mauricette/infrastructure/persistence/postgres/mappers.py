@@ -13,6 +13,7 @@ from mauricette.domaine.entites.document_traitement_rag import DocumentTraitemen
 from mauricette.domaine.entites.enums import (
     FormatReponse,
     FournisseurStockage,
+    RoleMessageChatbot,
     StatutAppelOffre,
     StatutDocument,
     StatutEtape,
@@ -21,6 +22,7 @@ from mauricette.domaine.entites.enums import (
     TypeChunk,
     TypeTache,
 )
+from mauricette.domaine.entites.message_chatbot import MessageChatbot
 from mauricette.domaine.entites.question_referentiel import QuestionReferentiel
 from mauricette.domaine.entites.referentiel import Referentiel
 from mauricette.domaine.entites.reponse_question import Citation, ReponseQuestion
@@ -31,6 +33,7 @@ from mauricette.infrastructure.persistence.postgres.modeles import (
     ChunkModele,
     DocumentModele,
     DocumentTraitementRagModele,
+    MessageChatbotModele,
     QuestionReferentielModele,
     ReferentielModele,
     ReponseQuestionModele,
@@ -328,4 +331,30 @@ def reponse_question_vers_modele(entite: ReponseQuestion) -> ReponseQuestionMode
         citations=[_citation_vers_dict(c) for c in entite.citations],
         date_creation=entite.date_creation,
         date_maj=entite.date_maj,
+    )
+
+
+def message_chatbot_vers_entite(modele: MessageChatbotModele) -> MessageChatbot:
+    """Convertit un modèle ORM `MessageChatbotModele` en entité de domaine `MessageChatbot`."""
+    return MessageChatbot(
+        id=modele.id,
+        appel_offre_id=modele.appel_offre_id,
+        role=RoleMessageChatbot(modele.role),
+        contenu=modele.contenu,
+        score_confiance=modele.score_confiance,
+        citations=[_citation_depuis_dict(c) for c in modele.citations],
+        date_creation=modele.date_creation,
+    )
+
+
+def message_chatbot_vers_modele(entite: MessageChatbot) -> MessageChatbotModele:
+    """Convertit une entité de domaine `MessageChatbot` en modèle ORM `MessageChatbotModele`."""
+    return MessageChatbotModele(
+        id=entite.id,
+        appel_offre_id=entite.appel_offre_id,
+        role=entite.role.value,
+        contenu=entite.contenu,
+        score_confiance=entite.score_confiance,
+        citations=[_citation_vers_dict(c) for c in entite.citations],
+        date_creation=entite.date_creation,
     )

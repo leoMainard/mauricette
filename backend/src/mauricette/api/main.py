@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mauricette.api.routes import (
     routeur_appel_offre_referentiels,
     routeur_appels_offre,
+    routeur_chatbot,
     routeur_documents,
     routeur_questions_referentiel,
     routeur_referentiels,
@@ -39,6 +40,7 @@ app.include_router(routeur_sections_referentiel, prefix="/api")
 app.include_router(routeur_questions_referentiel, prefix="/api")
 app.include_router(routeur_traitement_rag, prefix="/api")
 app.include_router(routeur_reponses, prefix="/api")
+app.include_router(routeur_chatbot, prefix="/api")
 
 
 @app.get("/api/sante", tags=["Technique"])

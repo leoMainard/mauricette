@@ -27,6 +27,7 @@ from mauricette.application.cas_usage.detacher_referentiel_appel_offre import (
     DetacherReferentielDeAppelOffre,
 )
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
+from mauricette.application.cas_usage.lister_messages_chatbot import ListerMessagesChatbot
 from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
     ObtenirEtatAnalyseAppelOffre,
 )
@@ -51,6 +52,7 @@ from mauricette.application.cas_usage.modifier_section_referentiel import (
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
 from mauricette.application.cas_usage.obtenir_contenu_document import ObtenirContenuDocument
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
+from mauricette.application.cas_usage.poser_question_chatbot import PoserQuestionChatbot
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
 from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
 from mauricette.application.cas_usage.supprimer_question_referentiel import (
@@ -72,6 +74,7 @@ from mauricette.domaine.ports.document_traitement_rag_repository import (
 from mauricette.domaine.ports.embedding import EmbeddingPort
 from mauricette.domaine.ports.extracteur_document import ExtracteurDocumentPort
 from mauricette.domaine.ports.generation_reponse import GenerationReponsePort
+from mauricette.domaine.ports.message_chatbot_repository import MessageChatbotRepositoryPort
 from mauricette.domaine.ports.question_referentiel_repository import (
     QuestionReferentielRepositoryPort,
 )
@@ -95,6 +98,9 @@ from mauricette.infrastructure.persistence.postgres.document_repository_sql impo
 )
 from mauricette.infrastructure.persistence.postgres.document_traitement_rag_repository_sql import (
     DocumentTraitementRagRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.message_chatbot_repository_sql import (
+    MessageChatbotRepositorySQL,
 )
 from mauricette.infrastructure.persistence.postgres.question_referentiel_repository_sql import (
     QuestionReferentielRepositorySQL,
@@ -235,6 +241,13 @@ def obtenir_depot_reponses(
 ) -> ReponseQuestionRepositoryPort:
     """Fournit l'implémentation courante du port `ReponseQuestionRepositoryPort`."""
     return ReponseQuestionRepositorySQL(session)
+
+
+def obtenir_depot_messages_chatbot(
+    session: Session = Depends(obtenir_session),
+) -> MessageChatbotRepositoryPort:
+    """Fournit l'implémentation courante du port `MessageChatbotRepositoryPort`."""
+    return MessageChatbotRepositorySQL(session)
 
 
 # --- Appels d'Offres ---
@@ -504,3 +517,34 @@ def obtenir_cas_usage_obtenir_etat_analyse_ao(
 ) -> ObtenirEtatAnalyseAppelOffre:
     """Fournit le cas d'usage de consultation de l'état de la dernière analyse d'un AO."""
     return ObtenirEtatAnalyseAppelOffre(depot_taches)
+
+
+# --- Chatbot ---
+
+
+def obtenir_cas_usage_lister_messages_chatbot(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_messages: MessageChatbotRepositoryPort = Depends(obtenir_depot_messages_chatbot),
+) -> ListerMessagesChatbot:
+    """Fournit le cas d'usage de consultation de l'historique du chatbot d'un AO."""
+    return ListerMessagesChatbot(depot_appels_offre, depot_messages)
+
+
+def obtenir_cas_usage_poser_question_chatbot(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_messages: MessageChatbotRepositoryPort = Depends(obtenir_depot_messages_chatbot),
+    depot_chunks: ChunkRepositoryPort = Depends(obtenir_depot_chunks),
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+    embedding: EmbeddingPort = Depends(obtenir_embedding),
+    generation: GenerationReponsePort = Depends(obtenir_generation),
+) -> PoserQuestionChatbot:
+    """Fournit le cas d'usage pour poser une question libre au chatbot d'un AO, prêt à l'emploi."""
+    return PoserQuestionChatbot(
+        depot_appels_offre,
+        depot_messages,
+        depot_chunks,
+        depot_documents,
+        embedding,
+        generation,
+        obtenir_parametres(),
+    )

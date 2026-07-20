@@ -169,3 +169,16 @@ export interface ReponseQuestion {
   date_creation: string;
   date_maj: string;
 }
+
+export type RoleMessageChatbot = "utilisateur" | "assistant";
+
+/** Message (question ou réponse) du fil de discussion du chatbot d'un AO. */
+export interface MessageChatbot {
+  id: string;
+  appel_offre_id: string;
+  role: RoleMessageChatbot;
+  contenu: string | null;
+  score_confiance: number | null;
+  citations: Citation[];
+  date_creation: string;
+}

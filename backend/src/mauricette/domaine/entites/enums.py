@@ -88,3 +88,10 @@ class StatutReponse(StrEnum):
 
     GENEREE = "generee"
     VALIDEE_UTILISATEUR = "valide_utilisateur"
+
+
+class RoleMessageChatbot(StrEnum):
+    """Auteur d'un message dans la conversation du chatbot d'un AO."""
+
+    UTILISATEUR = "utilisateur"
+    ASSISTANT = "assistant"

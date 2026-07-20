@@ -8,12 +8,13 @@ from mistralai.client import Mistral
 from mistralai.client.errors.mistralerror import MistralError
 
 from mauricette.config.parametres import Parametres
-from mauricette.domaine.entites.enums import FormatReponse
+from mauricette.domaine.entites.enums import FormatReponse, RoleMessageChatbot
 from mauricette.domaine.exceptions import ErreurGenerationIndisponible
 from mauricette.domaine.ports.generation_reponse import (
     ExtraitContexte,
     GenerationReponsePort,
     ReponseGeneree,
+    TourConversation,
 )
 
 INSTRUCTIONS_SYSTEME = """Tu es un assistant qui aide une collectivité territoriale française à analyser \
@@ -51,6 +52,7 @@ class MistralGenerationAdapter(GenerationReponsePort):
         format_attendu: FormatReponse,
         aide_extraction: str | None,
         extraits: list[ExtraitContexte],
+        historique: list[TourConversation] | None = None,
     ) -> ReponseGeneree:
         if not extraits:
             return ReponseGeneree(contenu=None, score_confiance=0.0, chunks_utilises=[])
@@ -59,13 +61,16 @@ class MistralGenerationAdapter(GenerationReponsePort):
             question, format_attendu, aide_extraction, extraits
         )
 
+        messages = [{"role": "system", "content": INSTRUCTIONS_SYSTEME}]
+        for tour in historique or []:
+            role_mistral = "assistant" if tour.role == RoleMessageChatbot.ASSISTANT else "user"
+            messages.append({"role": role_mistral, "content": tour.contenu})
+        messages.append({"role": "user", "content": message_utilisateur})
+
         try:
             reponse_api = self._client.chat.complete(
                 model=self._modele,
-                messages=[
-                    {"role": "system", "content": INSTRUCTIONS_SYSTEME},
-                    {"role": "user", "content": message_utilisateur},
-                ],
+                messages=messages,
                 response_format={"type": "json_object"},
                 temperature=0.1,
             )
