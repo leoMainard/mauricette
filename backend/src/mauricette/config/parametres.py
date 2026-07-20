@@ -57,6 +57,7 @@ class Parametres(BaseSettings):
     rag_taille_cible_chunk_caracteres: int = 1500
     rag_chevauchement_chunk_caracteres: int = 200
     rag_nombre_chunks_recherche: int = 8
+    rag_chatbot_nombre_echanges_historique: int = 3
 
     @property
     def url_base_donnees(self) -> str:

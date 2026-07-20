@@ -1,4 +1,4 @@
-import { Check, FolderOpen, ListChecks, Pencil, Trash2, X } from "lucide-react";
+import { Check, FolderOpen, ListChecks, MessageSquare, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
@@ -8,6 +8,7 @@ import {
   supprimerAppelOffre,
   supprimerDocument,
 } from "../api/appelsOffreApi";
+import { listerMessagesChatbot, poserQuestionChatbot } from "../api/chatbotApi";
 import { ErreurApi } from "../api/client";
 import {
   attacherReferentiel,
@@ -31,6 +32,7 @@ import type {
   DocumentDepose,
   DocumentTraitementRag,
   EtatAnalyse,
+  MessageChatbot,
   Referentiel,
   ReponseQuestion,
   StatutAppelOffre,
@@ -39,6 +41,7 @@ import { type DocumentAPercevoir, PanneauApercuDocument } from "../components/ap
 import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
 import { ModaleConfirmation } from "../components/ModaleConfirmation";
+import { OngletChatbot } from "../components/OngletChatbot";
 import { OngletDocuments } from "../components/OngletDocuments";
 import { OngletQuestions } from "../components/OngletQuestions";
 import type { SuiviFichier } from "../components/SuiviDepot";
@@ -54,7 +57,7 @@ const LIBELLES_STATUT: Record<StatutAppelOffre, string> = {
   archive: "Archivé",
 };
 
-type Onglet = "documents" | "questions";
+type Onglet = "documents" | "questions" | "chatbot";
 
 function formaterDateHeure(dateIso: string): string {
   return new Date(dateIso).toLocaleString("fr-FR", {
@@ -110,6 +113,11 @@ export function PageDetailAppelOffre() {
   const [erreurSuppressionAo, setErreurSuppressionAo] = useState<string | null>(null);
 
   const [documentApercu, setDocumentApercu] = useState<DocumentAPercevoir | null>(null);
+
+  const [messagesChatbot, setMessagesChatbot] = useState<MessageChatbot[]>([]);
+  const [chargementChatbot, setChargementChatbot] = useState(true);
+  const [envoiChatbotEnCours, setEnvoiChatbotEnCours] = useState(false);
+  const [erreurChatbot, setErreurChatbot] = useState<string | null>(null);
 
   async function chargerQuestions(referentiels: Referentiel[]) {
     if (!id) return;
@@ -174,6 +182,17 @@ export function PageDetailAppelOffre() {
       })
       .catch(() => {
         // Amélioration d'affichage : une erreur ici ne doit pas bloquer la page.
+      });
+
+    listerMessagesChatbot(id)
+      .then((messages) => {
+        if (!annule) setMessagesChatbot(messages);
+      })
+      .catch((e) => {
+        if (!annule) setErreurChatbot(e instanceof ErreurApi ? e.message : "Erreur de chargement");
+      })
+      .finally(() => {
+        if (!annule) setChargementChatbot(false);
       });
 
     return () => {
@@ -428,6 +447,30 @@ export function PageDetailAppelOffre() {
     if (document) ouvrirApercu(document, citation.page_debut);
   }
 
+  async function envoyerMessageChatbot(question: string) {
+    if (!id) return;
+    const messageOptimiste: MessageChatbot = {
+      id: `temp-${Date.now()}`,
+      appel_offre_id: id,
+      role: "utilisateur",
+      contenu: question,
+      score_confiance: null,
+      citations: [],
+      date_creation: new Date().toISOString(),
+    };
+    setMessagesChatbot((precedent) => [...precedent, messageOptimiste]);
+    setEnvoiChatbotEnCours(true);
+    setErreurChatbot(null);
+    try {
+      const reponse = await poserQuestionChatbot(id, question);
+      setMessagesChatbot((precedent) => [...precedent, reponse]);
+    } catch (e) {
+      setErreurChatbot(e instanceof ErreurApi ? e.message : "Erreur lors de l'envoi du message.");
+    } finally {
+      setEnvoiChatbotEnCours(false);
+    }
+  }
+
   async function relancer(document: DocumentDepose) {
     if (!id) return;
     setRelanceEnCours((precedent) => new Set(precedent).add(document.id));
@@ -583,6 +626,14 @@ export function PageDetailAppelOffre() {
             {reponsesGenereesTotal}/{questionsActivesTotal}
           </span>
         </button>
+        <button
+          type="button"
+          className={`onglet${ongletActif === "chatbot" ? " onglet--actif" : ""}`}
+          onClick={() => setOngletActif("chatbot")}
+        >
+          <MessageSquare size={16} />
+          Chatbot
+        </button>
       </div>
 
       {ongletActif === "documents" ? (
@@ -597,7 +648,7 @@ export function PageDetailAppelOffre() {
           onRelancer={relancer}
           onOuvrirApercu={ouvrirApercu}
         />
-      ) : (
+      ) : ongletActif === "questions" ? (
         <OngletQuestions
           referentielsAttaches={referentielsAttaches}
           referentielsDisponibles={referentielsDisponibles}
@@ -613,6 +664,16 @@ export function PageDetailAppelOffre() {
           onValider={valider}
           reanalyseEnCours={declenchementReanalyseEnCours || analyseReellementEnCours}
           onReanalyser={reanalyser}
+          onOuvrirApercuCitation={ouvrirApercuDepuisCitation}
+        />
+      ) : (
+        <OngletChatbot
+          messages={messagesChatbot}
+          chargement={chargementChatbot}
+          envoiEnCours={envoiChatbotEnCours}
+          erreur={erreurChatbot}
+          nombreDocuments={documents.length}
+          onEnvoyer={envoyerMessageChatbot}
           onOuvrirApercuCitation={ouvrirApercuDepuisCitation}
         />
       )}
