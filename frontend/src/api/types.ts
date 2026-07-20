@@ -38,6 +38,8 @@ export interface AppelOffreAvecStatistiques {
   nombre_documents: number;
   taille_totale_octets: number;
   en_erreur_analyse: boolean;
+  questions_actives: number;
+  reponses_generees: number;
 }
 
 /** Bilan du dépôt d'un fichier : documents créés (peut être plusieurs si zip) et doublons ignorés. */
@@ -217,4 +219,10 @@ export interface FeedbackReponse {
   details_erreur: string | null;
   date_creation: string;
   date_maj: string;
+}
+
+/** Nombre de documents dont l'analyse s'est terminée durant un jour donné. */
+export interface VolumeJour {
+  jour: string;
+  nombre: number;
 }

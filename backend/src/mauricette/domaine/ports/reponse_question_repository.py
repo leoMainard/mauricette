@@ -41,3 +41,12 @@ class ReponseQuestionRepositoryPort(ABC):
     def mettre_a_jour(self, reponse: ReponseQuestion) -> None:
         """Utilisé uniquement pour les mutations en place (ex: validation par l'utilisateur)."""
         raise NotImplementedError
+
+    @abstractmethod
+    def compter_avec_contenu_par_appel_offre(self) -> dict[UUID, int]:
+        """Retourne, pour chaque AO, le nombre de réponses effectivement renseignées
+        (contenu non nul) — pas le nombre total de lignes `ReponseQuestion`, qui inclut
+        aussi les questions sans réponse trouvée. Une seule requête agrégée, utilisée
+        pour la barre de progression d'analyse dans la liste des AO.
+        """
+        raise NotImplementedError

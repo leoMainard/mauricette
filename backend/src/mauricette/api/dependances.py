@@ -60,6 +60,9 @@ from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOff
 from mauricette.application.cas_usage.obtenir_contenu_document import ObtenirContenuDocument
 from mauricette.application.cas_usage.obtenir_feedback_general import ObtenirFeedbackGeneral
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
+from mauricette.application.cas_usage.obtenir_volume_documents_par_jour import (
+    ObtenirVolumeDocumentsParJour,
+)
 from mauricette.application.cas_usage.poser_question_chatbot import PoserQuestionChatbot
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
 from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
@@ -296,9 +299,13 @@ def obtenir_cas_usage_lister_appels_offre(
     depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
     depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
     depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+    depot_reponses: ReponseQuestionRepositoryPort = Depends(obtenir_depot_reponses),
 ) -> ListerAppelsOffre:
     """Fournit le cas d'usage de listing des Appels d'Offres, prêt à l'emploi."""
-    return ListerAppelsOffre(depot_appels_offre, depot_documents, depot_taches)
+    return ListerAppelsOffre(
+        depot_appels_offre, depot_documents, depot_taches, depot_referentiels_ao, depot_reponses
+    )
 
 
 def obtenir_cas_usage_modifier_appel_offre(
@@ -614,3 +621,13 @@ def obtenir_cas_usage_enregistrer_feedback_reponse(
 ) -> EnregistrerFeedbackReponse:
     """Fournit le cas d'usage d'enregistrement du feedback sur une réponse, prêt à l'emploi."""
     return EnregistrerFeedbackReponse(depot_appels_offre, depot_reponses, depot_feedback)
+
+
+# --- Statistiques ---
+
+
+def obtenir_cas_usage_obtenir_volume_documents_par_jour(
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+) -> ObtenirVolumeDocumentsParJour:
+    """Fournit le cas d'usage de consultation du volume de documents traités par jour."""
+    return ObtenirVolumeDocumentsParJour(depot_documents)

@@ -79,4 +79,10 @@ class VectoriserDocument:
         traitement.reussir_embedding()
         self._depot_traitement_rag.mettre_a_jour(traitement)
 
+        # Les 3 étapes du pipeline RAG (suivies séparément dans `DocumentTraitementRag`)
+        # sont terminées : le document lui-même passe à `traite`, pour que son statut
+        # affiché (arborescence des documents, statistiques) reflète la réalité.
+        document.marquer_traite()
+        self._depot_documents.mettre_a_jour(document)
+
         declencher_regeneration_reponses(document.appel_offre_id, self._depot_appels_offre, self._depot_taches)

@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from datetime import date
 from uuid import UUID
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.document import Document
+from mauricette.domaine.entites.enums import StatutDocument
 from mauricette.domaine.ports.document_repository import DocumentRepositoryPort, StatistiquesDocuments
 from mauricette.infrastructure.persistence.postgres.mappers import (
     document_vers_entite,
@@ -77,3 +79,13 @@ class DocumentRepositorySQL(DocumentRepositoryPort):
             )
             for appel_offre_id, nombre, taille_totale in resultats
         }
+
+    def compter_traites_par_jour(self) -> dict[date, int]:
+        jour = func.date_trunc("day", DocumentModele.date_maj)
+        requete = (
+            select(jour, func.count(DocumentModele.id))
+            .where(DocumentModele.statut == StatutDocument.TRAITE.value)
+            .group_by(jour)
+        )
+        resultats = self._session.execute(requete).all()
+        return {debut_jour.date(): nombre for debut_jour, nombre in resultats}

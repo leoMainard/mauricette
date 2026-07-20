@@ -7,6 +7,8 @@ interface Props {
   children: ReactNode;
   /** Contenu affiché dans la barre supérieure (ex: recherche, fil d'ariane). */
   barreSuperieure?: ReactNode;
+  /** Désactive la largeur maximale du contenu (ex: pages avec disposition en colonnes). */
+  pleineLargeur?: boolean;
 }
 
 const LIENS_NAVIGATION = [
@@ -18,7 +20,7 @@ const LIENS_NAVIGATION = [
  * Ossature de l'application : sidebar fixe à gauche (marque, action globale et
  * navigation) et zone principale (barre supérieure + contenu de la page).
  */
-export function Layout({ children, barreSuperieure }: Props) {
+export function Layout({ children, barreSuperieure, pleineLargeur }: Props) {
   const emplacement = useLocation();
 
   return (
@@ -52,7 +54,9 @@ export function Layout({ children, barreSuperieure }: Props) {
 
       <div className="zone-principale">
         <header className="barre-superieure">{barreSuperieure}</header>
-        <main className="contenu-principal">{children}</main>
+        <main className={`contenu-principal${pleineLargeur ? " contenu-principal--pleine-largeur" : ""}`}>
+          {children}
+        </main>
       </div>
     </div>
   );
