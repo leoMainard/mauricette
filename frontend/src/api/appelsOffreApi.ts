@@ -51,3 +51,7 @@ export async function supprimerDocument(appelOffreId: string, documentId: string
     method: "DELETE",
   });
 }
+
+export async function supprimerAppelOffre(appelOffreId: string): Promise<void> {
+  return requeteJson<void>(`/appels-offre/${appelOffreId}`, { method: "DELETE" });
+}

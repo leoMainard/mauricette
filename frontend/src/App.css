@@ -363,6 +363,72 @@
   font-weight: 500;
 }
 
+/* --- Modale de confirmation --- */
+
+.modale-fond {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 36, 86, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 100;
+}
+
+.modale-carte {
+  background: var(--bg);
+  border-radius: var(--rayon-lg);
+  box-shadow: var(--shadow);
+  padding: 24px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.modale-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.modale-actions button {
+  font: inherit;
+  font-weight: 600;
+  padding: 10px 18px;
+  border: 1px solid var(--marine);
+  border-radius: var(--rayon);
+  background: var(--marine);
+  color: #ffffff;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.modale-actions button:hover:not(:disabled) {
+  background: var(--marine-700);
+  border-color: var(--marine-700);
+}
+
+.modale-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.modale-actions .bouton-danger {
+  background: var(--erreur) !important;
+  border-color: var(--erreur) !important;
+  color: #ffffff !important;
+}
+
+.modale-actions .bouton-danger:hover:not(:disabled) {
+  background: #a82a20 !important;
+  border-color: #a82a20 !important;
+}
+
 /* --- Zone de dépôt --- */
 
 .zone-depot {

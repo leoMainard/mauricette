@@ -1,10 +1,11 @@
-import { Check, FolderOpen, ListChecks, Pencil, X } from "lucide-react";
+import { Check, FolderOpen, ListChecks, Pencil, Trash2, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   deposerDocument,
   obtenirAppelOffre,
   renommerAppelOffre,
+  supprimerAppelOffre,
   supprimerDocument,
 } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
@@ -35,6 +36,7 @@ import type {
 } from "../api/types";
 import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
+import { ModaleConfirmation } from "../components/ModaleConfirmation";
 import { OngletDocuments } from "../components/OngletDocuments";
 import { OngletQuestions } from "../components/OngletQuestions";
 import type { SuiviFichier } from "../components/SuiviDepot";
@@ -65,6 +67,7 @@ function formaterDateHeure(dateIso: string): string {
 /** Page de détail d'un Appel d'Offres : en-tête + onglets Documents / Questions. */
 export function PageDetailAppelOffre() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
 
   const [appelOffre, setAppelOffre] = useState<AppelOffre | null>(null);
   const [documents, setDocuments] = useState<DocumentDepose[]>([]);
@@ -99,6 +102,10 @@ export function PageDetailAppelOffre() {
   const [validationEnCoursId, setValidationEnCoursId] = useState<string | null>(null);
   const [declenchementReanalyseEnCours, setDeclenchementReanalyseEnCours] = useState(false);
   const [etatAnalyse, setEtatAnalyse] = useState<EtatAnalyse | null>(null);
+
+  const [suppressionAoDemandee, setSuppressionAoDemandee] = useState(false);
+  const [suppressionAoEnCours, setSuppressionAoEnCours] = useState(false);
+  const [erreurSuppressionAo, setErreurSuppressionAo] = useState<string | null>(null);
 
   async function chargerQuestions(referentiels: Referentiel[]) {
     if (!id) return;
@@ -388,6 +395,21 @@ export function PageDetailAppelOffre() {
     }
   }
 
+  async function confirmerSuppressionAo() {
+    if (!id) return;
+    setSuppressionAoEnCours(true);
+    setErreurSuppressionAo(null);
+    try {
+      await supprimerAppelOffre(id);
+      navigate("/");
+    } catch (e) {
+      setErreurSuppressionAo(
+        e instanceof ErreurApi ? e.message : "Erreur lors de la suppression de l'Appel d'Offres.",
+      );
+      setSuppressionAoEnCours(false);
+    }
+  }
+
   async function relancer(document: DocumentDepose) {
     if (!id) return;
     setRelanceEnCours((precedent) => new Set(precedent).add(document.id));
@@ -498,6 +520,18 @@ export function PageDetailAppelOffre() {
             >
               <Pencil size={15} />
             </button>
+            <button
+              type="button"
+              className="bouton-icone bouton-icone--annuler"
+              onClick={() => {
+                setErreurSuppressionAo(null);
+                setSuppressionAoDemandee(true);
+              }}
+              title="Supprimer l'Appel d'Offres"
+              aria-label="Supprimer l'Appel d'Offres"
+            >
+              <Trash2 size={15} />
+            </button>
           </div>
         )}
 
@@ -560,6 +594,23 @@ export function PageDetailAppelOffre() {
           onValider={valider}
           reanalyseEnCours={declenchementReanalyseEnCours || analyseReellementEnCours}
           onReanalyser={reanalyser}
+        />
+      )}
+
+      {suppressionAoDemandee && (
+        <ModaleConfirmation
+          titre="Supprimer cet Appel d'Offres ?"
+          message={`"${appelOffre.nom}" et tous ses documents seront définitivement supprimés. Cette action est irréversible.`}
+          texteConfirmation="Supprimer"
+          dangereux
+          enCours={suppressionAoEnCours}
+          erreur={erreurSuppressionAo}
+          onConfirmer={confirmerSuppressionAo}
+          onAnnuler={() => {
+            if (suppressionAoEnCours) return;
+            setSuppressionAoDemandee(false);
+            setErreurSuppressionAo(null);
+          }}
         />
       )}
     </Layout>

@@ -39,3 +39,8 @@ class AppelOffreRepositoryPort(ABC):
     def mettre_a_jour(self, appel_offre: AppelOffre) -> None:
         """Enregistre les modifications apportées à un Appel d'Offres existant."""
         raise NotImplementedError
+
+    @abstractmethod
+    def supprimer(self, appel_offre_id: UUID) -> None:
+        """Supprime définitivement un Appel d'Offres et tout ce qui en dépend (cascade en base)."""
+        raise NotImplementedError
