@@ -44,6 +44,20 @@ class Parametres(BaseSettings):
     # --- API ---
     api_cors_origins: list[str] = ["http://localhost:5173"]
 
+    # --- RAG (extraction, embeddings, génération) ---
+    mistral_api_key: str = ""
+    mistral_embed_model: str = "mistral-embed"
+    mistral_generation_model: str = "mistral-large-latest"
+
+    rag_worker_intervalle_secondes: float = 3.0
+    rag_nombre_max_tentatives_tache: int = 3
+    rag_delai_avant_nouvelle_tentative_secondes: int = 30
+
+    rag_taille_lot_embedding: int = 32
+    rag_taille_cible_chunk_caracteres: int = 1500
+    rag_chevauchement_chunk_caracteres: int = 200
+    rag_nombre_chunks_recherche: int = 8
+
     @property
     def url_base_donnees(self) -> str:
         """Construit l'URL de connexion SQLAlchemy (driver psycopg v3)."""

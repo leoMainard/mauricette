@@ -1,6 +1,7 @@
-import { Trash2 } from "lucide-react";
-import type { DocumentDepose, StatutDocument } from "../api/types";
+import { RotateCw, Trash2 } from "lucide-react";
+import type { DocumentDepose, DocumentTraitementRag, StatutDocument } from "../api/types";
 import { Badge } from "./Badge";
+import { BadgeEtapeTraitement } from "./BadgeEtapeTraitement";
 
 interface Props {
   documents: DocumentDepose[];
@@ -8,6 +9,22 @@ interface Props {
   onSupprimer?: (document: DocumentDepose) => void;
   /** Documents en cours de suppression (affiche un état désactivé). */
   suppressionEnCours?: Set<string>;
+  /** Suivi du pipeline RAG par document (id -> suivi), pour afficher la pastille d'étape. */
+  traitements?: Map<string, DocumentTraitementRag>;
+  /** Si fourni (avec `traitements`), affiche un bouton de relance sur les documents en échec. */
+  onRelancer?: (document: DocumentDepose) => void;
+  /** Documents dont la relance est en cours (affiche un état désactivé). */
+  relanceEnCours?: Set<string>;
+}
+
+/** Premier message d'erreur non nul parmi les 3 étapes du pipeline, pour l'afficher en info-bulle. */
+function messageErreurTraitement(traitement: DocumentTraitementRag): string | undefined {
+  return (
+    traitement.extraction.message_erreur ??
+    traitement.decoupage.message_erreur ??
+    traitement.embedding.message_erreur ??
+    undefined
+  );
 }
 
 const LIBELLES_STATUT: Record<StatutDocument, string> = {
@@ -65,23 +82,44 @@ function NoeudArborescence({
   profondeur,
   onSupprimer,
   suppressionEnCours,
+  traitements,
+  onRelancer,
+  relanceEnCours,
 }: {
   noeud: NoeudArbre;
   profondeur: number;
   onSupprimer?: (document: DocumentDepose) => void;
   suppressionEnCours?: Set<string>;
+  traitements?: Map<string, DocumentTraitementRag>;
+  onRelancer?: (document: DocumentDepose) => void;
+  relanceEnCours?: Set<string>;
 }) {
   const style = { paddingLeft: `${profondeur * 20}px` };
 
   if (noeud.document) {
     const document = noeud.document;
     const enCoursDeSuppression = suppressionEnCours?.has(document.id) ?? false;
+    const traitement = traitements?.get(document.id);
+    const enCoursDeRelance = relanceEnCours?.has(document.id) ?? false;
     return (
       <li className="arbre-noeud arbre-noeud--fichier" style={style}>
         <span className="arbre-noeud__icone">📄</span>
         <span className="arbre-noeud__nom">{noeud.nom}</span>
         <span className="texte-discret">{formaterTaille(document.taille_octets)}</span>
         <Badge statut={document.statut} libelle={LIBELLES_STATUT[document.statut]} />
+        {traitement && <BadgeEtapeTraitement statut={traitement.statut_global} />}
+        {traitement?.statut_global === "echec" && onRelancer && (
+          <button
+            type="button"
+            className="bouton-icone"
+            onClick={() => onRelancer(document)}
+            disabled={enCoursDeRelance}
+            title={messageErreurTraitement(traitement) ?? "Relancer le traitement"}
+            aria-label={`Relancer le traitement de ${noeud.nom}`}
+          >
+            <RotateCw size={15} />
+          </button>
+        )}
         {onSupprimer && (
           <button
             type="button"
@@ -111,6 +149,9 @@ function NoeudArborescence({
           profondeur={profondeur + 1}
           onSupprimer={onSupprimer}
           suppressionEnCours={suppressionEnCours}
+          traitements={traitements}
+          onRelancer={onRelancer}
+          relanceEnCours={relanceEnCours}
         />
       ))}
     </>
@@ -122,7 +163,14 @@ function NoeudArborescence({
  * structure de dossiers d'origine (utile pour un gros zip : on retrouve les
  * fichiers là où ils étaient rangés).
  */
-export function ArborescenceDocuments({ documents, onSupprimer, suppressionEnCours }: Props) {
+export function ArborescenceDocuments({
+  documents,
+  onSupprimer,
+  suppressionEnCours,
+  traitements,
+  onRelancer,
+  relanceEnCours,
+}: Props) {
   if (documents.length === 0) {
     return <p className="texte-discret">Aucun document pour le moment.</p>;
   }
@@ -138,6 +186,9 @@ export function ArborescenceDocuments({ documents, onSupprimer, suppressionEnCou
           profondeur={0}
           onSupprimer={onSupprimer}
           suppressionEnCours={suppressionEnCours}
+          traitements={traitements}
+          onRelancer={onRelancer}
+          relanceEnCours={relanceEnCours}
         />
       ))}
     </ul>

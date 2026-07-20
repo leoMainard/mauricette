@@ -15,3 +15,27 @@ class EntiteIntrouvable(ErreurDomaine):
 
 class ErreurDepotDocument(ErreurDomaine):
     """Levée quand l'écriture d'un document dans le stockage échoue."""
+
+
+class ErreurTraitementTransitoire(ErreurDomaine):
+    """Erreur probablement temporaire (quota API, timeout réseau) : à re-tenter automatiquement."""
+
+
+class ErreurTraitementDefinitive(ErreurDomaine):
+    """Erreur qui ne se résoudra pas en re-tentant (format non supporté, mot de passe requis...)."""
+
+
+class ErreurExtractionDocument(ErreurTraitementDefinitive):
+    """Levée quand l'extraction du contenu d'un document échoue durablement."""
+
+
+class ErreurEmbeddingIndisponible(ErreurTraitementTransitoire):
+    """Levée quand le fournisseur d'embedding est temporairement indisponible (quota, timeout)."""
+
+
+class ErreurGenerationIndisponible(ErreurTraitementTransitoire):
+    """Levée quand le fournisseur de génération est temporairement indisponible (quota, timeout)."""
+
+
+class ErreurEtatTraitementInvalide(ErreurDomaine):
+    """Levée par RelancerDocument si le document ciblé n'est pas en échec de traitement RAG."""

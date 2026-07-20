@@ -989,3 +989,165 @@
   gap: 12px;
   width: 100%;
 }
+
+/* --- Traitement RAG : progression, réponses, citations --- */
+
+.progression-traitement {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 0.85rem;
+  color: var(--text-discret);
+  margin: 12px 0;
+}
+
+.progression-traitement__badge {
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 999px;
+}
+
+.progression-traitement__badge--cours {
+  background: var(--accent-bg);
+  color: var(--marine);
+}
+
+.progression-traitement__badge--erreur {
+  background: rgba(209, 55, 42, 0.14);
+  color: var(--erreur);
+}
+
+@media (prefers-color-scheme: dark) {
+  .progression-traitement__badge--cours {
+    color: var(--accent);
+  }
+}
+
+.lien-reponses-ia {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--marine);
+  flex-shrink: 0;
+}
+
+.lien-reponses-ia:hover {
+  color: var(--marine-700);
+}
+
+@media (prefers-color-scheme: dark) {
+  .lien-reponses-ia {
+    color: var(--accent);
+  }
+  .lien-reponses-ia:hover {
+    color: var(--accent-hover);
+  }
+}
+
+.bloc-reponse-ia {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.bloc-reponse-ia__meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.liste-citations {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+}
+
+/* --- Fiche AO : en-tête + onglets --- */
+
+.entete-fiche-ao {
+  margin-bottom: 20px;
+}
+
+.entete-fiche-ao__titre {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+
+.entete-fiche-ao__titre h1 {
+  margin: 0;
+}
+
+.entete-fiche-ao__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text-discret);
+}
+
+.barre-onglets {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.onglet {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 8px;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 2px solid transparent !important;
+  border-radius: 0 !important;
+  padding: 10px 4px !important;
+  margin-right: 20px;
+  color: var(--text-discret) !important;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.onglet:hover:not(:disabled) {
+  color: var(--text-h) !important;
+}
+
+.onglet--actif {
+  color: var(--marine) !important;
+  border-bottom-color: var(--marine) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .onglet--actif {
+    color: var(--accent) !important;
+    border-bottom-color: var(--accent) !important;
+  }
+}
+
+.onglet__compte {
+  background: var(--code-bg);
+  color: var(--text-discret);
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+}
+
+@keyframes rotation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.icone-rotation {
+  animation: rotation 1s linear infinite;
+}

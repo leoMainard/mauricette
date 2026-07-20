@@ -37,6 +37,7 @@ export interface AppelOffreAvecStatistiques {
   appel_offre: AppelOffre;
   nombre_documents: number;
   taille_totale_octets: number;
+  en_erreur_analyse: boolean;
 }
 
 /** Bilan du dépôt d'un fichier : documents créés (peut être plusieurs si zip) et doublons ignorés. */
@@ -117,4 +118,54 @@ export interface DetailReferentiel {
   referentiel: Referentiel;
   sections: SectionAvecQuestions[];
   nombre_ao_concernes: number;
+}
+
+export type StatutEtape = "en_attente" | "en_cours" | "reussi" | "echec";
+
+export interface EtapeTraitement {
+  statut: StatutEtape;
+  message_erreur: string | null;
+  date_maj: string | null;
+}
+
+/** Suivi du pipeline RAG (extraction, découpage, embedding) d'un document. */
+export interface DocumentTraitementRag {
+  document_id: string;
+  extraction: EtapeTraitement;
+  decoupage: EtapeTraitement;
+  embedding: EtapeTraitement;
+  statut_global: StatutEtape;
+}
+
+export type StatutTache = "en_attente" | "en_cours" | "reussi" | "echec";
+
+/** État de la dernière analyse (régénération des réponses) déclenchée pour un AO. */
+export interface EtatAnalyse {
+  statut: StatutTache;
+  message_erreur: string | null;
+  tentatives: number;
+}
+
+export type StatutReponse = "generee" | "valide_utilisateur";
+
+export interface Citation {
+  chunk_id: string;
+  document_id: string;
+  document_nom: string;
+  page_debut: number | null;
+  page_fin: number | null;
+  titre_section: string | null;
+}
+
+/** Réponse générée par le RAG pour une question de référentiel, sur un AO donné. */
+export interface ReponseQuestion {
+  id: string;
+  appel_offre_id: string;
+  question_referentiel_id: string;
+  contenu: string | null;
+  score_confiance: number | null;
+  statut: StatutReponse;
+  citations: Citation[];
+  date_creation: string;
+  date_maj: string;
 }

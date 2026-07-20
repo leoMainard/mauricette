@@ -11,11 +11,31 @@ from __future__ import annotations
 from datetime import datetime
 from uuid import UUID, uuid4
 
-from sqlalchemy import BigInteger, Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from pgvector.sqlalchemy import Vector
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Computed,
+    DateTime,
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    func,
+)
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from mauricette.infrastructure.persistence.postgres.base import Base
+
+# Dimension des vecteurs produits par mistral-embed. Si le fournisseur d'embedding
+# change un jour pour un modèle à dimension différente, cette constante (et la
+# migration Alembic associée) devront être mises à jour en conséquence.
+DIMENSION_EMBEDDING = 1024
 
 
 class AppelOffreModele(Base):
@@ -144,3 +164,106 @@ class AppelOffreReferentielModele(Base):
         PG_UUID(as_uuid=True), ForeignKey("referentiel.id", ondelete="CASCADE"), nullable=False
     )
     date_ajout: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class DocumentTraitementRagModele(Base):
+    """Table `document_traitement_rag` : suivi de l'avancement du pipeline RAG d'un document."""
+
+    __tablename__ = "document_traitement_rag"
+
+    document_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("document.id", ondelete="CASCADE"), primary_key=True
+    )
+    appel_offre_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
+    )
+
+    extraction_statut: Mapped[str] = mapped_column(String(20), nullable=False)
+    extraction_message_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
+    extraction_date_maj: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    decoupage_statut: Mapped[str] = mapped_column(String(20), nullable=False)
+    decoupage_message_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
+    decoupage_date_maj: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    embedding_statut: Mapped[str] = mapped_column(String(20), nullable=False)
+    embedding_message_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
+    embedding_date_maj: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ChunkModele(Base):
+    """Table `chunk` : fragment de contenu d'un document, avec son vecteur d'embedding."""
+
+    __tablename__ = "chunk"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    document_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("document.id", ondelete="CASCADE"), nullable=False
+    )
+    appel_offre_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
+    )
+    contenu: Mapped[str] = mapped_column(Text, nullable=False)
+    # Colonne générée par Postgres (voir migration), utilisée par la recherche
+    # plein texte de `recherche_hybride` : jamais écrite depuis Python.
+    contenu_tsv: Mapped[str] = mapped_column(
+        TSVECTOR, Computed("to_tsvector('french', contenu)", persisted=True), nullable=True
+    )
+    type_chunk: Mapped[str] = mapped_column(String(20), nullable=False)
+    page_debut: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    page_fin: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    titre_section: Mapped[str | None] = mapped_column(String(1000), nullable=True)
+    ordre: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    embedding: Mapped[list[float] | None] = mapped_column(Vector(DIMENSION_EMBEDDING), nullable=True)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class TacheTraitementModele(Base):
+    """Table `tache_traitement` : file d'attente des traitements RAG asynchrones.
+
+    `reference_id` est une cible polymorphe (pas de clé étrangère) : selon
+    `type_tache`, il désigne l'identifiant du document à traiter.
+    """
+
+    __tablename__ = "tache_traitement"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    type_tache: Mapped[str] = mapped_column(String(50), nullable=False)
+    reference_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    statut: Mapped[str] = mapped_column(String(20), nullable=False)
+    tentatives: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    message_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
+    date_prochaine_tentative: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    date_reservation: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class ReponseQuestionModele(Base):
+    """Table `reponse_question` : réponse générée par le RAG pour une question, sur un AO."""
+
+    __tablename__ = "reponse_question"
+    __table_args__ = (UniqueConstraint("appel_offre_id", "question_referentiel_id"),)
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    appel_offre_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
+    )
+    question_referentiel_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("question_referentiel.id", ondelete="CASCADE"), nullable=False
+    )
+    contenu: Mapped[str | None] = mapped_column(Text, nullable=True)
+    score_confiance: Mapped[float | None] = mapped_column(Float, nullable=True)
+    statut: Mapped[str] = mapped_column(String(30), nullable=False)
+    citations: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )

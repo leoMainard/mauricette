@@ -12,6 +12,8 @@ from mauricette.api.routes.referentiel_routes import routeur as routeur_referent
 from mauricette.api.routes.section_referentiel_routes import (
     routeur as routeur_sections_referentiel,
 )
+from mauricette.api.routes.traitement_rag_routes import routeur as routeur_traitement_rag
+from mauricette.api.routes.traitement_rag_routes import routeur_reponses
 
 __all__ = [
     "routeur_appel_offre_referentiels",
@@ -19,5 +21,7 @@ __all__ = [
     "routeur_documents",
     "routeur_questions_referentiel",
     "routeur_referentiels",
+    "routeur_reponses",
     "routeur_sections_referentiel",
+    "routeur_traitement_rag",
 ]

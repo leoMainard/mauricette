@@ -47,3 +47,44 @@ class FormatReponse(StrEnum):
     LISTE = "liste"
     TEXTE_LIBRE = "texte_libre"
     AUTRE = "autre"
+
+
+class StatutEtape(StrEnum):
+    """Statut d'une étape du pipeline RAG (extraction, découpage, embedding)."""
+
+    EN_ATTENTE = "en_attente"
+    EN_COURS = "en_cours"
+    REUSSI = "reussi"
+    ECHEC = "echec"
+
+
+class TypeChunk(StrEnum):
+    """Nature du contenu d'un chunk : texte courant ou tableau extrait tel quel."""
+
+    TEXTE = "texte"
+    TABLEAU = "tableau"
+
+
+class TypeTache(StrEnum):
+    """Type de traitement asynchrone à exécuter par le worker RAG."""
+
+    EXTRACTION_DOCUMENT = "extraction_document"
+    DECOUPAGE_DOCUMENT = "decoupage_document"
+    EMBEDDING_DOCUMENT = "embedding_document"
+    REGENERATION_REPONSES_AO = "regeneration_reponses_ao"
+
+
+class StatutTache(StrEnum):
+    """Cycle de vie d'une tâche dans la file d'attente de traitement RAG."""
+
+    EN_ATTENTE = "en_attente"
+    EN_COURS = "en_cours"
+    REUSSI = "reussi"
+    ECHEC = "echec"
+
+
+class StatutReponse(StrEnum):
+    """Cycle de vie d'une réponse générée pour une question de référentiel."""
+
+    GENEREE = "generee"
+    VALIDEE_UTILISATEUR = "valide_utilisateur"

@@ -101,26 +101,32 @@ export function PageListeAppelsOffre() {
                 </tr>
               </thead>
               <tbody>
-                {appelsOffre.map(({ appel_offre, nombre_documents, taille_totale_octets }) => (
-                  <tr
-                    key={appel_offre.id}
-                    className="ligne-cliquable"
-                    tabIndex={0}
-                    onClick={() => navigate(`/appels-offre/${appel_offre.id}`)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") navigate(`/appels-offre/${appel_offre.id}`);
-                    }}
-                  >
-                    <td className="cellule-nom-ao">{appel_offre.nom}</td>
-                    <td>
-                      <Badge statut={appel_offre.statut} libelle={LIBELLES_STATUT[appel_offre.statut]} />
-                    </td>
-                    <td>{appel_offre.cree_par}</td>
-                    <td>{formaterDate(appel_offre.date_creation)}</td>
-                    <td>{nombre_documents}</td>
-                    <td>{formaterTaille(taille_totale_octets)}</td>
-                  </tr>
-                ))}
+                {appelsOffre.map(
+                  ({ appel_offre, nombre_documents, taille_totale_octets, en_erreur_analyse }) => (
+                    <tr
+                      key={appel_offre.id}
+                      className="ligne-cliquable"
+                      tabIndex={0}
+                      onClick={() => navigate(`/appels-offre/${appel_offre.id}`)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") navigate(`/appels-offre/${appel_offre.id}`);
+                      }}
+                    >
+                      <td className="cellule-nom-ao">{appel_offre.nom}</td>
+                      <td>
+                        {en_erreur_analyse ? (
+                          <Badge statut="en_erreur" libelle="Erreur d'analyse" />
+                        ) : (
+                          <Badge statut={appel_offre.statut} libelle={LIBELLES_STATUT[appel_offre.statut]} />
+                        )}
+                      </td>
+                      <td>{appel_offre.cree_par}</td>
+                      <td>{formaterDate(appel_offre.date_creation)}</td>
+                      <td>{nombre_documents}</td>
+                      <td>{formaterTaille(taille_totale_octets)}</td>
+                    </tr>
+                  ),
+                )}
               </tbody>
             </table>
           </div>

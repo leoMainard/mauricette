@@ -7,11 +7,11 @@ const URL_BASE_API: string = import.meta.env.VITE_API_URL ?? "http://localhost:8
 
 /** Erreur levée quand l'API répond avec un statut HTTP non 2xx. */
 export class ErreurApi extends Error {
-  constructor(
-    public readonly statut: number,
-    message: string,
-  ) {
+  readonly statut: number;
+
+  constructor(statut: number, message: string) {
     super(message);
+    this.statut = statut;
     this.name = "ErreurApi";
   }
 }
