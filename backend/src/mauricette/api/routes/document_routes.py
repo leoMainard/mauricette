@@ -2,18 +2,25 @@
 
 from __future__ import annotations
 
+import posixpath
+from urllib.parse import quote
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, HTTPException, Response, UploadFile, status
 
 from mauricette.api.dependances import (
     obtenir_cas_usage_deposer_fichier,
+    obtenir_cas_usage_obtenir_contenu_document,
     obtenir_cas_usage_supprimer_document,
 )
 from mauricette.api.schemas.document_schemas import DepotFichierReponse
 from mauricette.application.cas_usage.deposer_fichier import (
     CommandeDeposerFichier,
     DeposerFichier,
+)
+from mauricette.application.cas_usage.obtenir_contenu_document import (
+    CommandeObtenirContenuDocument,
+    ObtenirContenuDocument,
 )
 from mauricette.application.cas_usage.supprimer_document import (
     CommandeSupprimerDocument,
@@ -66,3 +73,35 @@ def supprimer_document(
         )
     except EntiteIntrouvable as erreur:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
+
+
+@routeur.get("/{document_id}/contenu")
+def obtenir_contenu_document(
+    appel_offre_id: UUID,
+    document_id: UUID,
+    cas_usage: ObtenirContenuDocument = Depends(obtenir_cas_usage_obtenir_contenu_document),
+) -> Response:
+    """Retourne le contenu binaire d'un document, pour aperçu dans l'interface.
+
+    Le fichier est proxifié depuis le stockage (local ou S3/MinIO) plutôt que
+    redirigé vers une URL signée, pour éviter tout souci de CORS côté navigateur
+    (parsing DOCX/XLSX en JS) et fonctionner à l'identique quel que soit
+    l'adaptateur de stockage actif.
+    """
+    try:
+        resultat = cas_usage.executer(
+            CommandeObtenirContenuDocument(appel_offre_id=appel_offre_id, document_id=document_id)
+        )
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
+
+    # Un fichier issu d'un zip éclaté peut avoir un nom_original contenant des "/" :
+    # on ne garde que le nom de base. `filename*=UTF-8''...` (RFC 5987/6266) plutôt
+    # que `filename="..."` : ce dernier est limité au Latin-1 et casserait sur un
+    # nom accentué (application francophone).
+    nom_base = posixpath.basename(resultat.nom_original.replace("\\", "/"))
+    return Response(
+        content=resultat.contenu,
+        media_type=resultat.type_mime or "application/octet-stream",
+        headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote(nom_base)}"},
+    )

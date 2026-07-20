@@ -15,6 +15,7 @@ interface Props {
   onAjouterFichiers: (fichiers: File[]) => void;
   onSupprimer: (document: DocumentDepose) => void;
   onRelancer: (document: DocumentDepose) => void;
+  onOuvrirApercu: (document: DocumentDepose) => void;
 }
 
 /** Onglet "Documents" de la fiche AO : liste des documents + ajout compact. */
@@ -27,6 +28,7 @@ export function OngletDocuments({
   onAjouterFichiers,
   onSupprimer,
   onRelancer,
+  onOuvrirApercu,
 }: Props) {
   const entreeFichier = useRef<HTMLInputElement>(null);
 
@@ -61,6 +63,7 @@ export function OngletDocuments({
         traitements={traitements}
         onRelancer={onRelancer}
         relanceEnCours={relanceEnCours}
+        onOuvrirApercu={onOuvrirApercu}
       />
     </div>
   );

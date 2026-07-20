@@ -1,7 +1,12 @@
-import { Check, RotateCw, Trash2 } from "lucide-react";
+import { Check, FileText, RotateCw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { DetailReferentiel, Referentiel, ReponseQuestion } from "../api/types";
+import type { Citation, DetailReferentiel, Referentiel, ReponseQuestion } from "../api/types";
 import { LIBELLES_FORMAT_REPONSE } from "../constantesReferentiel";
+
+/** Nom de fichier court (sans le chemin de dossier issu d'un zip éclaté), pour les pastilles de citation. */
+function nomCourtDocument(nom: string): string {
+  return nom.split("/").pop() || nom;
+}
 
 interface Props {
   referentielsAttaches: Referentiel[];
@@ -20,6 +25,8 @@ interface Props {
 
   reanalyseEnCours: boolean;
   onReanalyser: () => void;
+
+  onOuvrirApercuCitation: (citation: Citation) => void;
 }
 
 /** Onglet "Questions" de la fiche AO : référentiels appliqués + réponses générées par l'IA. */
@@ -38,6 +45,7 @@ export function OngletQuestions({
   onValider,
   reanalyseEnCours,
   onReanalyser,
+  onOuvrirApercuCitation,
 }: Props) {
   const questionsActivesTotal = details.reduce(
     (total, d) => total + d.sections.flatMap((s) => s.questions).filter((q) => q.actif).length,
@@ -156,31 +164,41 @@ export function OngletQuestions({
 
                                   {reponse.contenu && (
                                     <div className="bloc-reponse-ia__meta">
+                                      {reponse.citations.length > 0 && (
+                                        <ul className="liste-citations">
+                                          {reponse.citations.map((citation) => (
+                                            <li key={citation.chunk_id}>
+                                              <button
+                                                type="button"
+                                                className="pastille-citation"
+                                                onClick={() => onOuvrirApercuCitation(citation)}
+                                                title={citation.document_nom}
+                                              >
+                                                <FileText size={10} className="pastille-citation__icone" />
+                                                <span className="pastille-citation__label">
+                                                  {nomCourtDocument(citation.document_nom)}
+                                                  {citation.page_debut && ` — p.${citation.page_debut}`}
+                                                </span>
+                                              </button>
+                                            </li>
+                                          ))}
+                                        </ul>
+                                      )}
                                       {reponse.score_confiance !== null && (
                                         <span
-                                          className={`badge ${
-                                            reponse.score_confiance >= 0.7 ? "badge--traite" : "badge--en_attente"
+                                          className={`pastille-confiance pastille-confiance--${
+                                            reponse.score_confiance >= 0.7 ? "elevee" : "faible"
                                           }`}
+                                          title={`${Math.round(reponse.score_confiance * 100)}% de confiance`}
                                         >
-                                          {Math.round(reponse.score_confiance * 100)}% de confiance
+                                          <span className="pastille-confiance__point" />
+                                          Confiance {reponse.score_confiance >= 0.7 ? "élevée" : "faible"}
                                         </span>
                                       )}
                                       {reponse.statut === "valide_utilisateur" && (
                                         <span className="badge badge--actif">Validé</span>
                                       )}
                                     </div>
-                                  )}
-
-                                  {reponse.citations.length > 0 && (
-                                    <ul className="liste-citations">
-                                      {reponse.citations.map((citation) => (
-                                        <li key={citation.chunk_id} className="texte-discret">
-                                          {citation.document_nom}
-                                          {citation.page_debut && ` · p.${citation.page_debut}`}
-                                          {citation.titre_section && ` · ${citation.titre_section}`}
-                                        </li>
-                                      ))}
-                                    </ul>
                                   )}
                                 </div>
                               )}

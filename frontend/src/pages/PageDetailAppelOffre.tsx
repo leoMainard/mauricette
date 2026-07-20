@@ -26,6 +26,7 @@ import {
 } from "../api/traitementRagApi";
 import type {
   AppelOffre,
+  Citation,
   DetailReferentiel,
   DocumentDepose,
   DocumentTraitementRag,
@@ -34,6 +35,7 @@ import type {
   ReponseQuestion,
   StatutAppelOffre,
 } from "../api/types";
+import { type DocumentAPercevoir, PanneauApercuDocument } from "../components/apercus/PanneauApercuDocument";
 import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
 import { ModaleConfirmation } from "../components/ModaleConfirmation";
@@ -106,6 +108,8 @@ export function PageDetailAppelOffre() {
   const [suppressionAoDemandee, setSuppressionAoDemandee] = useState(false);
   const [suppressionAoEnCours, setSuppressionAoEnCours] = useState(false);
   const [erreurSuppressionAo, setErreurSuppressionAo] = useState<string | null>(null);
+
+  const [documentApercu, setDocumentApercu] = useState<DocumentAPercevoir | null>(null);
 
   async function chargerQuestions(referentiels: Referentiel[]) {
     if (!id) return;
@@ -410,6 +414,20 @@ export function PageDetailAppelOffre() {
     }
   }
 
+  function ouvrirApercu(document: DocumentDepose, pageInitiale?: number | null) {
+    setDocumentApercu({
+      documentId: document.id,
+      nomOriginal: document.nom_original,
+      typeMime: document.type_mime,
+      pageInitiale,
+    });
+  }
+
+  function ouvrirApercuDepuisCitation(citation: Citation) {
+    const document = documents.find((d) => d.id === citation.document_id);
+    if (document) ouvrirApercu(document, citation.page_debut);
+  }
+
   async function relancer(document: DocumentDepose) {
     if (!id) return;
     setRelanceEnCours((precedent) => new Set(precedent).add(document.id));
@@ -577,6 +595,7 @@ export function PageDetailAppelOffre() {
           onAjouterFichiers={ajouterFichiers}
           onSupprimer={supprimer}
           onRelancer={relancer}
+          onOuvrirApercu={ouvrirApercu}
         />
       ) : (
         <OngletQuestions
@@ -594,6 +613,7 @@ export function PageDetailAppelOffre() {
           onValider={valider}
           reanalyseEnCours={declenchementReanalyseEnCours || analyseReellementEnCours}
           onReanalyser={reanalyser}
+          onOuvrirApercuCitation={ouvrirApercuDepuisCitation}
         />
       )}
 
@@ -613,6 +633,12 @@ export function PageDetailAppelOffre() {
           }}
         />
       )}
+
+      <PanneauApercuDocument
+        appelOffreId={id!}
+        document={documentApercu}
+        onFermer={() => setDocumentApercu(null)}
+      />
     </Layout>
   );
 }

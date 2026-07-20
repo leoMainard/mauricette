@@ -15,6 +15,8 @@ interface Props {
   onRelancer?: (document: DocumentDepose) => void;
   /** Documents dont la relance est en cours (affiche un état désactivé). */
   relanceEnCours?: Set<string>;
+  /** Si fourni, un clic sur un fichier ouvre son aperçu. */
+  onOuvrirApercu?: (document: DocumentDepose) => void;
 }
 
 /** Premier message d'erreur non nul parmi les 3 étapes du pipeline, pour l'afficher en info-bulle. */
@@ -85,6 +87,7 @@ function NoeudArborescence({
   traitements,
   onRelancer,
   relanceEnCours,
+  onOuvrirApercu,
 }: {
   noeud: NoeudArbre;
   profondeur: number;
@@ -93,6 +96,7 @@ function NoeudArborescence({
   traitements?: Map<string, DocumentTraitementRag>;
   onRelancer?: (document: DocumentDepose) => void;
   relanceEnCours?: Set<string>;
+  onOuvrirApercu?: (document: DocumentDepose) => void;
 }) {
   const style = { paddingLeft: `${profondeur * 20}px` };
 
@@ -102,7 +106,16 @@ function NoeudArborescence({
     const traitement = traitements?.get(document.id);
     const enCoursDeRelance = relanceEnCours?.has(document.id) ?? false;
     return (
-      <li className="arbre-noeud arbre-noeud--fichier" style={style}>
+      <li
+        className="arbre-noeud arbre-noeud--fichier"
+        style={style}
+        onClick={() => onOuvrirApercu?.(document)}
+        role={onOuvrirApercu ? "button" : undefined}
+        tabIndex={onOuvrirApercu ? 0 : undefined}
+        onKeyDown={(e) => {
+          if (onOuvrirApercu && e.key === "Enter") onOuvrirApercu(document);
+        }}
+      >
         <span className="arbre-noeud__icone">📄</span>
         <span className="arbre-noeud__nom">{noeud.nom}</span>
         <span className="texte-discret">{formaterTaille(document.taille_octets)}</span>
@@ -112,7 +125,10 @@ function NoeudArborescence({
           <button
             type="button"
             className="bouton-icone"
-            onClick={() => onRelancer(document)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onRelancer(document);
+            }}
             disabled={enCoursDeRelance}
             title={messageErreurTraitement(traitement) ?? "Relancer le traitement"}
             aria-label={`Relancer le traitement de ${noeud.nom}`}
@@ -124,7 +140,10 @@ function NoeudArborescence({
           <button
             type="button"
             className="bouton-icone bouton-icone--annuler"
-            onClick={() => onSupprimer(document)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onSupprimer(document);
+            }}
             disabled={enCoursDeSuppression}
             title="Supprimer"
             aria-label={`Supprimer ${noeud.nom}`}
@@ -152,6 +171,7 @@ function NoeudArborescence({
           traitements={traitements}
           onRelancer={onRelancer}
           relanceEnCours={relanceEnCours}
+          onOuvrirApercu={onOuvrirApercu}
         />
       ))}
     </>
@@ -170,6 +190,7 @@ export function ArborescenceDocuments({
   traitements,
   onRelancer,
   relanceEnCours,
+  onOuvrirApercu,
 }: Props) {
   if (documents.length === 0) {
     return <p className="texte-discret">Aucun document pour le moment.</p>;
@@ -189,6 +210,7 @@ export function ArborescenceDocuments({
           traitements={traitements}
           onRelancer={onRelancer}
           relanceEnCours={relanceEnCours}
+          onOuvrirApercu={onOuvrirApercu}
         />
       ))}
     </ul>
