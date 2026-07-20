@@ -27,6 +27,13 @@ class ReponseQuestionRepositoryPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def obtenir_par_appel_offre_et_question(
+        self, appel_offre_id: UUID, question_referentiel_id: UUID
+    ) -> ReponseQuestion | None:
+        """Utilisé pour snapshotter le contenu actuel d'une réponse au moment d'un feedback."""
+        raise NotImplementedError
+
+    @abstractmethod
     def obtenir_par_id(self, reponse_id: UUID) -> ReponseQuestion | None:
         raise NotImplementedError
 

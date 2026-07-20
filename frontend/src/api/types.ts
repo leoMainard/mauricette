@@ -182,3 +182,39 @@ export interface MessageChatbot {
   citations: Citation[];
   date_creation: string;
 }
+
+export type Avis = "positif" | "negatif";
+
+export type TypeErreurFeedback =
+  | "information_incorrecte"
+  | "information_incomplete"
+  | "mauvaise_source"
+  | "source_manquante"
+  | "format_inadapte"
+  | "autre";
+
+/** Avis global sur l'aide apportée par Mauricette pour un AO (un seul par AO). */
+export interface FeedbackGeneral {
+  id: string;
+  appel_offre_id: string;
+  avis: Avis | null;
+  commentaire: string | null;
+  date_creation: string;
+  date_maj: string;
+}
+
+/** Avis sur la réponse à une question de référentiel, pour un AO (un seul par question). */
+export interface FeedbackReponse {
+  id: string;
+  appel_offre_id: string;
+  question_referentiel_id: string;
+  avis: Avis | null;
+  contenu_reponse_snapshot: string | null;
+  commentaire: string | null;
+  source_attendue: string | null;
+  citation_attendue: string | null;
+  type_erreur: TypeErreurFeedback | null;
+  details_erreur: string | null;
+  date_creation: string;
+  date_maj: string;
+}

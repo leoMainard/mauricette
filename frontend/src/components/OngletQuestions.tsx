@@ -1,7 +1,15 @@
 import { Check, FileText, RotateCw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import type { Citation, DetailReferentiel, Referentiel, ReponseQuestion } from "../api/types";
+import type { DetailFeedbackReponse } from "../api/feedbackApi";
+import type {
+  Citation,
+  DetailReferentiel,
+  FeedbackReponse,
+  Referentiel,
+  ReponseQuestion,
+} from "../api/types";
 import { LIBELLES_FORMAT_REPONSE } from "../constantesReferentiel";
+import { WidgetFeedbackReponse } from "./WidgetFeedbackReponse";
 
 /** Nom de fichier court (sans le chemin de dossier issu d'un zip éclaté), pour les pastilles de citation. */
 function nomCourtDocument(nom: string): string {
@@ -27,6 +35,10 @@ interface Props {
   onReanalyser: () => void;
 
   onOuvrirApercuCitation: (citation: Citation) => void;
+
+  feedbackParQuestion: Map<string, FeedbackReponse>;
+  feedbackEnCoursId: string | null;
+  onEnregistrerFeedback: (questionId: string, detail: DetailFeedbackReponse) => void;
 }
 
 /** Onglet "Questions" de la fiche AO : référentiels appliqués + réponses générées par l'IA. */
@@ -46,6 +58,9 @@ export function OngletQuestions({
   reanalyseEnCours,
   onReanalyser,
   onOuvrirApercuCitation,
+  feedbackParQuestion,
+  feedbackEnCoursId,
+  onEnregistrerFeedback,
 }: Props) {
   const questionsActivesTotal = details.reduce(
     (total, d) => total + d.sections.flatMap((s) => s.questions).filter((q) => q.actif).length,
@@ -200,6 +215,13 @@ export function OngletQuestions({
                                       )}
                                     </div>
                                   )}
+
+                                  <WidgetFeedbackReponse
+                                    feedback={feedbackParQuestion.get(question.id) ?? null}
+                                    contenuReponseActuel={reponse.contenu}
+                                    enCours={feedbackEnCoursId === question.id}
+                                    onEnregistrer={(detail) => onEnregistrerFeedback(question.id, detail)}
+                                  />
                                 </div>
                               )}
                             </div>

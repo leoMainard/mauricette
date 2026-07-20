@@ -26,7 +26,14 @@ from mauricette.application.cas_usage.deposer_fichier import DeposerFichier
 from mauricette.application.cas_usage.detacher_referentiel_appel_offre import (
     DetacherReferentielDeAppelOffre,
 )
+from mauricette.application.cas_usage.enregistrer_feedback_general import (
+    EnregistrerFeedbackGeneral,
+)
+from mauricette.application.cas_usage.enregistrer_feedback_reponse import (
+    EnregistrerFeedbackReponse,
+)
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
+from mauricette.application.cas_usage.lister_feedback_reponses import ListerFeedbackReponses
 from mauricette.application.cas_usage.lister_messages_chatbot import ListerMessagesChatbot
 from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
     ObtenirEtatAnalyseAppelOffre,
@@ -51,6 +58,7 @@ from mauricette.application.cas_usage.modifier_section_referentiel import (
 )
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
 from mauricette.application.cas_usage.obtenir_contenu_document import ObtenirContenuDocument
+from mauricette.application.cas_usage.obtenir_feedback_general import ObtenirFeedbackGeneral
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
 from mauricette.application.cas_usage.poser_question_chatbot import PoserQuestionChatbot
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
@@ -73,6 +81,8 @@ from mauricette.domaine.ports.document_traitement_rag_repository import (
 )
 from mauricette.domaine.ports.embedding import EmbeddingPort
 from mauricette.domaine.ports.extracteur_document import ExtracteurDocumentPort
+from mauricette.domaine.ports.feedback_general_repository import FeedbackGeneralRepositoryPort
+from mauricette.domaine.ports.feedback_reponse_repository import FeedbackReponseRepositoryPort
 from mauricette.domaine.ports.generation_reponse import GenerationReponsePort
 from mauricette.domaine.ports.message_chatbot_repository import MessageChatbotRepositoryPort
 from mauricette.domaine.ports.question_referentiel_repository import (
@@ -98,6 +108,12 @@ from mauricette.infrastructure.persistence.postgres.document_repository_sql impo
 )
 from mauricette.infrastructure.persistence.postgres.document_traitement_rag_repository_sql import (
     DocumentTraitementRagRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.feedback_general_repository_sql import (
+    FeedbackGeneralRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.feedback_reponse_repository_sql import (
+    FeedbackReponseRepositorySQL,
 )
 from mauricette.infrastructure.persistence.postgres.message_chatbot_repository_sql import (
     MessageChatbotRepositorySQL,
@@ -248,6 +264,20 @@ def obtenir_depot_messages_chatbot(
 ) -> MessageChatbotRepositoryPort:
     """Fournit l'implémentation courante du port `MessageChatbotRepositoryPort`."""
     return MessageChatbotRepositorySQL(session)
+
+
+def obtenir_depot_feedback_general(
+    session: Session = Depends(obtenir_session),
+) -> FeedbackGeneralRepositoryPort:
+    """Fournit l'implémentation courante du port `FeedbackGeneralRepositoryPort`."""
+    return FeedbackGeneralRepositorySQL(session)
+
+
+def obtenir_depot_feedback_reponse(
+    session: Session = Depends(obtenir_session),
+) -> FeedbackReponseRepositoryPort:
+    """Fournit l'implémentation courante du port `FeedbackReponseRepositoryPort`."""
+    return FeedbackReponseRepositorySQL(session)
 
 
 # --- Appels d'Offres ---
@@ -548,3 +578,39 @@ def obtenir_cas_usage_poser_question_chatbot(
         generation,
         obtenir_parametres(),
     )
+
+
+# --- Feedback ---
+
+
+def obtenir_cas_usage_obtenir_feedback_general(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_feedback: FeedbackGeneralRepositoryPort = Depends(obtenir_depot_feedback_general),
+) -> ObtenirFeedbackGeneral:
+    """Fournit le cas d'usage de consultation du feedback général d'un AO."""
+    return ObtenirFeedbackGeneral(depot_appels_offre, depot_feedback)
+
+
+def obtenir_cas_usage_enregistrer_feedback_general(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_feedback: FeedbackGeneralRepositoryPort = Depends(obtenir_depot_feedback_general),
+) -> EnregistrerFeedbackGeneral:
+    """Fournit le cas d'usage d'enregistrement du feedback général d'un AO."""
+    return EnregistrerFeedbackGeneral(depot_appels_offre, depot_feedback)
+
+
+def obtenir_cas_usage_lister_feedback_reponses(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_feedback: FeedbackReponseRepositoryPort = Depends(obtenir_depot_feedback_reponse),
+) -> ListerFeedbackReponses:
+    """Fournit le cas d'usage de consultation des feedbacks de réponses d'un AO."""
+    return ListerFeedbackReponses(depot_appels_offre, depot_feedback)
+
+
+def obtenir_cas_usage_enregistrer_feedback_reponse(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_reponses: ReponseQuestionRepositoryPort = Depends(obtenir_depot_reponses),
+    depot_feedback: FeedbackReponseRepositoryPort = Depends(obtenir_depot_feedback_reponse),
+) -> EnregistrerFeedbackReponse:
+    """Fournit le cas d'usage d'enregistrement du feedback sur une réponse, prêt à l'emploi."""
+    return EnregistrerFeedbackReponse(depot_appels_offre, depot_reponses, depot_feedback)

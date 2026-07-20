@@ -8,6 +8,7 @@ from mauricette.api.routes import (
     routeur_appels_offre,
     routeur_chatbot,
     routeur_documents,
+    routeur_feedback,
     routeur_questions_referentiel,
     routeur_referentiels,
     routeur_reponses,
@@ -41,6 +42,7 @@ app.include_router(routeur_questions_referentiel, prefix="/api")
 app.include_router(routeur_traitement_rag, prefix="/api")
 app.include_router(routeur_reponses, prefix="/api")
 app.include_router(routeur_chatbot, prefix="/api")
+app.include_router(routeur_feedback, prefix="/api")
 
 
 @app.get("/api/sante", tags=["Technique"])

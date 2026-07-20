@@ -11,6 +11,13 @@ import {
 import { listerMessagesChatbot, poserQuestionChatbot } from "../api/chatbotApi";
 import { ErreurApi } from "../api/client";
 import {
+  type DetailFeedbackReponse,
+  enregistrerFeedbackGeneral,
+  enregistrerFeedbackReponse,
+  listerFeedbackReponses,
+  obtenirFeedbackGeneral,
+} from "../api/feedbackApi";
+import {
   attacherReferentiel,
   detacherReferentiel,
   listerReferentiels,
@@ -27,11 +34,14 @@ import {
 } from "../api/traitementRagApi";
 import type {
   AppelOffre,
+  Avis,
   Citation,
   DetailReferentiel,
   DocumentDepose,
   DocumentTraitementRag,
   EtatAnalyse,
+  FeedbackGeneral,
+  FeedbackReponse,
   MessageChatbot,
   Referentiel,
   ReponseQuestion,
@@ -45,6 +55,7 @@ import { OngletChatbot } from "../components/OngletChatbot";
 import { OngletDocuments } from "../components/OngletDocuments";
 import { OngletQuestions } from "../components/OngletQuestions";
 import type { SuiviFichier } from "../components/SuiviDepot";
+import { WidgetFeedbackGeneral } from "../components/WidgetFeedbackGeneral";
 
 // Intervalle de sondage de l'état du pipeline RAG, tant qu'au moins un document
 // n'est pas encore dans un état final (reussi/echec).
@@ -118,6 +129,11 @@ export function PageDetailAppelOffre() {
   const [chargementChatbot, setChargementChatbot] = useState(true);
   const [envoiChatbotEnCours, setEnvoiChatbotEnCours] = useState(false);
   const [erreurChatbot, setErreurChatbot] = useState<string | null>(null);
+
+  const [feedbackGeneral, setFeedbackGeneral] = useState<FeedbackGeneral | null>(null);
+  const [feedbackGeneralEnCours, setFeedbackGeneralEnCours] = useState(false);
+  const [feedbackReponses, setFeedbackReponses] = useState<Map<string, FeedbackReponse>>(new Map());
+  const [feedbackReponseEnCoursId, setFeedbackReponseEnCoursId] = useState<string | null>(null);
 
   async function chargerQuestions(referentiels: Referentiel[]) {
     if (!id) return;
@@ -193,6 +209,22 @@ export function PageDetailAppelOffre() {
       })
       .finally(() => {
         if (!annule) setChargementChatbot(false);
+      });
+
+    obtenirFeedbackGeneral(id)
+      .then((feedback) => {
+        if (!annule) setFeedbackGeneral(feedback);
+      })
+      .catch(() => {
+        // Amélioration d'affichage : une erreur ici ne doit pas bloquer la page.
+      });
+
+    listerFeedbackReponses(id)
+      .then((feedbacks) => {
+        if (!annule) setFeedbackReponses(new Map(feedbacks.map((f) => [f.question_referentiel_id, f])));
+      })
+      .catch(() => {
+        // Amélioration d'affichage : une erreur ici ne doit pas bloquer la page.
       });
 
     return () => {
@@ -471,6 +503,32 @@ export function PageDetailAppelOffre() {
     }
   }
 
+  async function enregistrerFeedbackGeneralAo(avis: Avis | null, commentaire: string | null) {
+    if (!id) return;
+    setFeedbackGeneralEnCours(true);
+    try {
+      const feedback = await enregistrerFeedbackGeneral(id, avis, commentaire);
+      setFeedbackGeneral(feedback);
+    } catch {
+      // Amélioration d'affichage : un feedback raté ne doit pas bloquer la page.
+    } finally {
+      setFeedbackGeneralEnCours(false);
+    }
+  }
+
+  async function enregistrerFeedbackPourQuestion(questionId: string, detail: DetailFeedbackReponse) {
+    if (!id) return;
+    setFeedbackReponseEnCoursId(questionId);
+    try {
+      const feedback = await enregistrerFeedbackReponse(id, questionId, detail);
+      setFeedbackReponses((precedent) => new Map(precedent).set(questionId, feedback));
+    } catch {
+      // Amélioration d'affichage : un feedback raté ne doit pas bloquer la page.
+    } finally {
+      setFeedbackReponseEnCoursId(null);
+    }
+  }
+
   async function relancer(document: DocumentDepose) {
     if (!id) return;
     setRelanceEnCours((precedent) => new Set(precedent).add(document.id));
@@ -603,6 +661,12 @@ export function PageDetailAppelOffre() {
           <span>·</span>
           <span>Dernière modification {formaterDateHeure(appelOffre.date_maj)}</span>
         </div>
+
+        <WidgetFeedbackGeneral
+          feedback={feedbackGeneral}
+          enCours={feedbackGeneralEnCours}
+          onEnregistrer={enregistrerFeedbackGeneralAo}
+        />
       </div>
 
       <div className="barre-onglets">
@@ -665,6 +729,9 @@ export function PageDetailAppelOffre() {
           reanalyseEnCours={declenchementReanalyseEnCours || analyseReellementEnCours}
           onReanalyser={reanalyser}
           onOuvrirApercuCitation={ouvrirApercuDepuisCitation}
+          feedbackParQuestion={feedbackReponses}
+          feedbackEnCoursId={feedbackReponseEnCoursId}
+          onEnregistrerFeedback={enregistrerFeedbackPourQuestion}
         />
       ) : (
         <OngletChatbot

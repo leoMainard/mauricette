@@ -1106,6 +1106,7 @@
 
 .question-item__contenu {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 6px;
   min-width: 0;
@@ -1272,6 +1273,113 @@
 
 .pastille-confiance--faible .pastille-confiance__point {
   background: var(--orange);
+}
+
+/* --- Feedback utilisateur --- */
+
+.boutons-pouce {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.bouton-pouce {
+  width: 28px !important;
+  height: 28px !important;
+}
+
+.bouton-pouce--actif-positif {
+  background: rgba(0, 150, 133, 0.14) !important;
+  border-color: var(--vert) !important;
+  color: var(--vert) !important;
+}
+
+.bouton-pouce--actif-negatif {
+  background: rgba(209, 55, 42, 0.14) !important;
+  border-color: var(--erreur) !important;
+  color: var(--erreur) !important;
+}
+
+.bouton-fantome--discret {
+  padding: 4px 10px !important;
+  font-size: 0.78rem !important;
+}
+
+.puce-reponse-modifiee {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  color: var(--orange);
+}
+
+.formulaire-detail-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--rayon);
+  background: var(--bg-alt);
+  width: 100%;
+}
+
+.formulaire-detail-feedback label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.formulaire-detail-feedback input,
+.formulaire-detail-feedback select,
+.formulaire-detail-feedback textarea {
+  width: 100%;
+}
+
+.widget-feedback-general {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.widget-feedback-general__question {
+  font-size: 0.85rem;
+  color: var(--text-discret);
+}
+
+.widget-feedback-general__commentaire {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.widget-feedback-general__commentaire textarea {
+  resize: vertical;
+  min-height: 3em;
+}
+
+.widget-feedback-general__commentaire-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.widget-feedback-general__commentaire-affichage {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 420px;
+}
+
+.widget-feedback-general__commentaire-affichage p {
+  margin: 0;
 }
 
 /* --- Chatbot AO --- */
