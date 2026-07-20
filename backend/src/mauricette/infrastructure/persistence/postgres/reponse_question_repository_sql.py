@@ -37,6 +37,16 @@ class ReponseQuestionRepositorySQL(ReponseQuestionRepositoryPort):
         modeles = self._session.execute(requete).scalars().all()
         return [reponse_question_vers_entite(modele) for modele in modeles]
 
+    def obtenir_par_appel_offre_et_question(
+        self, appel_offre_id: UUID, question_referentiel_id: UUID
+    ) -> ReponseQuestion | None:
+        requete = select(ReponseQuestionModele).where(
+            ReponseQuestionModele.appel_offre_id == appel_offre_id,
+            ReponseQuestionModele.question_referentiel_id == question_referentiel_id,
+        )
+        modele = self._session.execute(requete).scalar_one_or_none()
+        return reponse_question_vers_entite(modele) if modele else None
+
     def obtenir_par_id(self, reponse_id: UUID) -> ReponseQuestion | None:
         modele = self._session.get(ReponseQuestionModele, reponse_id)
         return reponse_question_vers_entite(modele) if modele else None

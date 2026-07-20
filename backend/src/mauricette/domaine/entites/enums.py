@@ -95,3 +95,21 @@ class RoleMessageChatbot(StrEnum):
 
     UTILISATEUR = "utilisateur"
     ASSISTANT = "assistant"
+
+
+class Avis(StrEnum):
+    """Verdict rapide (pouce haut/bas) d'un feedback utilisateur."""
+
+    POSITIF = "positif"
+    NEGATIF = "negatif"
+
+
+class TypeErreurFeedback(StrEnum):
+    """Catégorie d'erreur proposée lors du détail d'un feedback négatif sur une réponse."""
+
+    INFORMATION_INCORRECTE = "information_incorrecte"
+    INFORMATION_INCOMPLETE = "information_incomplete"
+    MAUVAISE_SOURCE = "mauvaise_source"
+    SOURCE_MANQUANTE = "source_manquante"
+    FORMAT_INADAPTE = "format_inadapte"
+    AUTRE = "autre"

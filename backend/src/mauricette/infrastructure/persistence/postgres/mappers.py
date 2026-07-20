@@ -11,6 +11,7 @@ from mauricette.domaine.entites.chunk import Chunk
 from mauricette.domaine.entites.document import Document
 from mauricette.domaine.entites.document_traitement_rag import DocumentTraitementRag
 from mauricette.domaine.entites.enums import (
+    Avis,
     FormatReponse,
     FournisseurStockage,
     RoleMessageChatbot,
@@ -20,8 +21,11 @@ from mauricette.domaine.entites.enums import (
     StatutReponse,
     StatutTache,
     TypeChunk,
+    TypeErreurFeedback,
     TypeTache,
 )
+from mauricette.domaine.entites.feedback_general import FeedbackGeneral
+from mauricette.domaine.entites.feedback_reponse import FeedbackReponse
 from mauricette.domaine.entites.message_chatbot import MessageChatbot
 from mauricette.domaine.entites.question_referentiel import QuestionReferentiel
 from mauricette.domaine.entites.referentiel import Referentiel
@@ -33,6 +37,8 @@ from mauricette.infrastructure.persistence.postgres.modeles import (
     ChunkModele,
     DocumentModele,
     DocumentTraitementRagModele,
+    FeedbackGeneralModele,
+    FeedbackReponseModele,
     MessageChatbotModele,
     QuestionReferentielModele,
     ReferentielModele,
@@ -357,4 +363,64 @@ def message_chatbot_vers_modele(entite: MessageChatbot) -> MessageChatbotModele:
         score_confiance=entite.score_confiance,
         citations=[_citation_vers_dict(c) for c in entite.citations],
         date_creation=entite.date_creation,
+    )
+
+
+def feedback_general_vers_entite(modele: FeedbackGeneralModele) -> FeedbackGeneral:
+    """Convertit un modèle ORM `FeedbackGeneralModele` en entité de domaine `FeedbackGeneral`."""
+    return FeedbackGeneral(
+        id=modele.id,
+        appel_offre_id=modele.appel_offre_id,
+        avis=Avis(modele.avis) if modele.avis else None,
+        commentaire=modele.commentaire,
+        date_creation=modele.date_creation,
+        date_maj=modele.date_maj,
+    )
+
+
+def feedback_general_vers_modele(entite: FeedbackGeneral) -> FeedbackGeneralModele:
+    """Convertit une entité de domaine `FeedbackGeneral` en modèle ORM `FeedbackGeneralModele`."""
+    return FeedbackGeneralModele(
+        id=entite.id,
+        appel_offre_id=entite.appel_offre_id,
+        avis=entite.avis.value if entite.avis else None,
+        commentaire=entite.commentaire,
+        date_creation=entite.date_creation,
+        date_maj=entite.date_maj,
+    )
+
+
+def feedback_reponse_vers_entite(modele: FeedbackReponseModele) -> FeedbackReponse:
+    """Convertit un modèle ORM `FeedbackReponseModele` en entité de domaine `FeedbackReponse`."""
+    return FeedbackReponse(
+        id=modele.id,
+        appel_offre_id=modele.appel_offre_id,
+        question_referentiel_id=modele.question_referentiel_id,
+        avis=Avis(modele.avis) if modele.avis else None,
+        contenu_reponse_snapshot=modele.contenu_reponse_snapshot,
+        commentaire=modele.commentaire,
+        source_attendue=modele.source_attendue,
+        citation_attendue=modele.citation_attendue,
+        type_erreur=TypeErreurFeedback(modele.type_erreur) if modele.type_erreur else None,
+        details_erreur=modele.details_erreur,
+        date_creation=modele.date_creation,
+        date_maj=modele.date_maj,
+    )
+
+
+def feedback_reponse_vers_modele(entite: FeedbackReponse) -> FeedbackReponseModele:
+    """Convertit une entité de domaine `FeedbackReponse` en modèle ORM `FeedbackReponseModele`."""
+    return FeedbackReponseModele(
+        id=entite.id,
+        appel_offre_id=entite.appel_offre_id,
+        question_referentiel_id=entite.question_referentiel_id,
+        avis=entite.avis.value if entite.avis else None,
+        contenu_reponse_snapshot=entite.contenu_reponse_snapshot,
+        commentaire=entite.commentaire,
+        source_attendue=entite.source_attendue,
+        citation_attendue=entite.citation_attendue,
+        type_erreur=entite.type_erreur.value if entite.type_erreur else None,
+        details_erreur=entite.details_erreur,
+        date_creation=entite.date_creation,
+        date_maj=entite.date_maj,
     )

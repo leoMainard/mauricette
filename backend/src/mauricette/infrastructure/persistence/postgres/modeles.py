@@ -283,3 +283,47 @@ class MessageChatbotModele(Base):
     score_confiance: Mapped[float | None] = mapped_column(Float, nullable=True)
     citations: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class FeedbackGeneralModele(Base):
+    """Table `feedback_general` : avis global sur l'aide apportée par Mauricette pour un AO."""
+
+    __tablename__ = "feedback_general"
+    __table_args__ = (UniqueConstraint("appel_offre_id"),)
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    appel_offre_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
+    )
+    avis: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    commentaire: Mapped[str | None] = mapped_column(Text, nullable=True)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class FeedbackReponseModele(Base):
+    """Table `feedback_reponse` : avis sur la réponse générée à une question de référentiel, pour un AO."""
+
+    __tablename__ = "feedback_reponse"
+    __table_args__ = (UniqueConstraint("appel_offre_id", "question_referentiel_id"),)
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    appel_offre_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("appel_offre.id", ondelete="CASCADE"), nullable=False
+    )
+    question_referentiel_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("question_referentiel.id", ondelete="CASCADE"), nullable=False
+    )
+    avis: Mapped[str | None] = mapped_column(String(20), nullable=True)
+    contenu_reponse_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
+    commentaire: Mapped[str | None] = mapped_column(Text, nullable=True)
+    source_attendue: Mapped[str | None] = mapped_column(Text, nullable=True)
+    citation_attendue: Mapped[str | None] = mapped_column(Text, nullable=True)
+    type_erreur: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    details_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
