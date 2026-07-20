@@ -49,6 +49,7 @@ from mauricette.application.cas_usage.modifier_section_referentiel import (
     ModifierSectionReferentiel,
 )
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
+from mauricette.application.cas_usage.obtenir_contenu_document import ObtenirContenuDocument
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
 from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
@@ -310,6 +311,14 @@ def obtenir_cas_usage_supprimer_document(
 ) -> SupprimerDocument:
     """Fournit le cas d'usage de suppression d'un document, prêt à l'emploi."""
     return SupprimerDocument(depot_appels_offre, depot_documents, depot_taches, stockage)
+
+
+def obtenir_cas_usage_obtenir_contenu_document(
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+    stockage: StockageDocumentPort = Depends(obtenir_stockage),
+) -> ObtenirContenuDocument:
+    """Fournit le cas d'usage de consultation du contenu d'un document, prêt à l'emploi."""
+    return ObtenirContenuDocument(depot_documents, stockage)
 
 
 # --- Référentiels ---

@@ -3,7 +3,7 @@
  * C'est le seul module qui connaît les routes HTTP exposées par le backend.
  */
 
-import { requeteFormulaire, requeteJson } from "./client";
+import { requeteFormulaire, requeteJson, URL_BASE_API } from "./client";
 import type {
   AppelOffre,
   AppelOffreAvecStatistiques,
@@ -54,4 +54,9 @@ export async function supprimerDocument(appelOffreId: string, documentId: string
 
 export async function supprimerAppelOffre(appelOffreId: string): Promise<void> {
   return requeteJson<void>(`/appels-offre/${appelOffreId}`, { method: "DELETE" });
+}
+
+/** URL du contenu binaire d'un document, pour aperçu (iframe, img, ou fetch côté JS). */
+export function urlContenuDocument(appelOffreId: string, documentId: string): string {
+  return `${URL_BASE_API}/appels-offre/${appelOffreId}/documents/${documentId}/contenu`;
 }

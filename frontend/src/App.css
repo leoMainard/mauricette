@@ -429,6 +429,79 @@
   border-color: #a82a20 !important;
 }
 
+/* --- Panneau d'aperçu de document --- */
+
+.panneau-apercu {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(720px, 55vw);
+  background: var(--bg);
+  border-left: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  z-index: 90;
+  display: flex;
+  flex-direction: column;
+}
+
+.panneau-apercu__entete {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.panneau-apercu__nom {
+  font-weight: 600;
+  color: var(--text-h);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.panneau-apercu__corps {
+  flex: 1;
+  overflow: auto;
+}
+
+.panneau-apercu__corps iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.panneau-apercu__corps img {
+  max-width: 100%;
+  display: block;
+  margin: 20px auto;
+}
+
+.apercu-docx {
+  padding: 24px;
+}
+
+.apercu-excel {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.85rem;
+}
+
+.apercu-excel td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  white-space: nowrap;
+}
+
+.apercu-indisponible {
+  padding: 32px 20px;
+  text-align: center;
+  color: var(--text-discret);
+}
+
 /* --- Zone de dépôt --- */
 
 .zone-depot {
@@ -658,6 +731,10 @@
   padding: 7px 6px;
   font-size: 0.9rem;
   border-radius: 6px;
+}
+
+.arbre-noeud--fichier {
+  cursor: pointer;
 }
 
 .arbre-noeud--fichier:hover {
@@ -1123,14 +1200,78 @@
 .bloc-reponse-ia__meta {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 8px;
 }
 
 .liste-citations {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  flex-wrap: wrap;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.pastille-citation {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 190px;
+  padding: 2px 8px 2px 6px !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 999px;
+  background: var(--bg-alt) !important;
+  color: var(--text-discret) !important;
+  font-size: 0.72rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.pastille-citation:hover:not(:disabled) {
+  background: var(--accent-bg) !important;
+  border-color: var(--accent-border) !important;
+  color: var(--marine) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .pastille-citation:hover:not(:disabled) {
+    color: var(--accent) !important;
+  }
+}
+
+.pastille-citation__icone {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.pastille-citation__label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pastille-confiance {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.8rem;
+  color: var(--text-discret);
+}
+
+.pastille-confiance__point {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pastille-confiance--elevee .pastille-confiance__point {
+  background: var(--vert);
+}
+
+.pastille-confiance--faible .pastille-confiance__point {
+  background: var(--orange);
 }
 
 /* --- Fiche AO : en-tête + onglets --- */

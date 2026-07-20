@@ -3,7 +3,7 @@
  * Centralise l'URL de base et la gestion des erreurs pour tous les appels API.
  */
 
-const URL_BASE_API: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
+export const URL_BASE_API: string = import.meta.env.VITE_API_URL ?? "http://localhost:8000/api";
 
 /** Erreur levée quand l'API répond avec un statut HTTP non 2xx. */
 export class ErreurApi extends Error {
