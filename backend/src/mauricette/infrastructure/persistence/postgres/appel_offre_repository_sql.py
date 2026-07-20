@@ -45,3 +45,10 @@ class AppelOffreRepositorySQL(AppelOffreRepositoryPort):
         modele.statut = appel_offre.statut.value
         modele.date_maj = appel_offre.date_maj
         self._session.commit()
+
+    def supprimer(self, appel_offre_id: UUID) -> None:
+        modele = self._session.get(AppelOffreModele, appel_offre_id)
+        if modele is None:
+            raise ValueError(f"Appel d'Offres introuvable : {appel_offre_id}")
+        self._session.delete(modele)
+        self._session.commit()

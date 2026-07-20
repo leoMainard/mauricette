@@ -1,10 +1,12 @@
+import { Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { listerAppelsOffre } from "../api/appelsOffreApi";
+import { listerAppelsOffre, supprimerAppelOffre } from "../api/appelsOffreApi";
 import { ErreurApi } from "../api/client";
 import type { AppelOffreAvecStatistiques, StatutAppelOffre } from "../api/types";
 import { Badge } from "../components/Badge";
 import { Layout } from "../components/Layout";
+import { ModaleConfirmation } from "../components/ModaleConfirmation";
 
 const LIBELLES_STATUT: Record<StatutAppelOffre, string> = {
   brouillon: "Brouillon",
@@ -34,6 +36,9 @@ export function PageListeAppelsOffre() {
   const [appelsOffre, setAppelsOffre] = useState<AppelOffreAvecStatistiques[]>([]);
   const [chargement, setChargement] = useState(true);
   const [erreur, setErreur] = useState<string | null>(null);
+  const [aoASupprimer, setAoASupprimer] = useState<AppelOffreAvecStatistiques | null>(null);
+  const [suppressionEnCours, setSuppressionEnCours] = useState(false);
+  const [erreurSuppression, setErreurSuppression] = useState<string | null>(null);
 
   useEffect(() => {
     let annule = false;
@@ -55,6 +60,25 @@ export function PageListeAppelsOffre() {
       clearTimeout(delai);
     };
   }, [terme]);
+
+  async function confirmerSuppression() {
+    if (!aoASupprimer) return;
+    setSuppressionEnCours(true);
+    setErreurSuppression(null);
+    try {
+      await supprimerAppelOffre(aoASupprimer.appel_offre.id);
+      setAppelsOffre((precedent) =>
+        precedent.filter((ao) => ao.appel_offre.id !== aoASupprimer.appel_offre.id),
+      );
+      setAoASupprimer(null);
+    } catch (e) {
+      setErreurSuppression(
+        e instanceof ErreurApi ? e.message : "Erreur lors de la suppression de l'Appel d'Offres.",
+      );
+    } finally {
+      setSuppressionEnCours(false);
+    }
+  }
 
   return (
     <Layout
@@ -98,11 +122,13 @@ export function PageListeAppelsOffre() {
                   <th>Créé le</th>
                   <th>Documents</th>
                   <th>Taille</th>
+                  <th aria-label="Actions" />
                 </tr>
               </thead>
               <tbody>
-                {appelsOffre.map(
-                  ({ appel_offre, nombre_documents, taille_totale_octets, en_erreur_analyse }) => (
+                {appelsOffre.map((ao) => {
+                  const { appel_offre, nombre_documents, taille_totale_octets, en_erreur_analyse } = ao;
+                  return (
                     <tr
                       key={appel_offre.id}
                       className="ligne-cliquable"
@@ -124,13 +150,45 @@ export function PageListeAppelsOffre() {
                       <td>{formaterDate(appel_offre.date_creation)}</td>
                       <td>{nombre_documents}</td>
                       <td>{formaterTaille(taille_totale_octets)}</td>
+                      <td>
+                        <button
+                          type="button"
+                          className="bouton-icone bouton-icone--annuler"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setErreurSuppression(null);
+                            setAoASupprimer(ao);
+                          }}
+                          title="Supprimer"
+                          aria-label={`Supprimer ${appel_offre.nom}`}
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
                     </tr>
-                  ),
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>
         </div>
+      )}
+
+      {aoASupprimer && (
+        <ModaleConfirmation
+          titre="Supprimer cet Appel d'Offres ?"
+          message={`"${aoASupprimer.appel_offre.nom}" et tous ses documents seront définitivement supprimés. Cette action est irréversible.`}
+          texteConfirmation="Supprimer"
+          dangereux
+          enCours={suppressionEnCours}
+          erreur={erreurSuppression}
+          onConfirmer={confirmerSuppression}
+          onAnnuler={() => {
+            if (suppressionEnCours) return;
+            setAoASupprimer(null);
+            setErreurSuppression(null);
+          }}
+        />
       )}
     </Layout>
   );

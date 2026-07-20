@@ -11,6 +11,7 @@ from mauricette.api.dependances import (
     obtenir_cas_usage_lister_appels_offre,
     obtenir_cas_usage_modifier_appel_offre,
     obtenir_cas_usage_obtenir_appel_offre,
+    obtenir_cas_usage_supprimer_appel_offre,
 )
 from mauricette.api.schemas.appel_offre_schemas import (
     AppelOffreAvecStatistiquesReponse,
@@ -29,6 +30,7 @@ from mauricette.application.cas_usage.modifier_appel_offre import (
     ModifierAppelOffre,
 )
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
+from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
 from mauricette.domaine.exceptions import EntiteIntrouvable
 
 routeur = APIRouter(prefix="/appels-offre", tags=["Appels d'Offres"])
@@ -84,3 +86,15 @@ def modifier_appel_offre(
     except EntiteIntrouvable as erreur:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
     return AppelOffreReponse.depuis_entite(appel_offre)
+
+
+@routeur.delete("/{appel_offre_id}", status_code=status.HTTP_204_NO_CONTENT)
+def supprimer_appel_offre(
+    appel_offre_id: UUID,
+    cas_usage: SupprimerAppelOffre = Depends(obtenir_cas_usage_supprimer_appel_offre),
+) -> None:
+    """Supprime définitivement un Appel d'Offres, ses documents et tout ce qui en dépend."""
+    try:
+        cas_usage.executer(appel_offre_id)
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
