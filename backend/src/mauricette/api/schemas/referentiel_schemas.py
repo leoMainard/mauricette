@@ -93,6 +93,12 @@ class ModificationSectionRequete(BaseModel):
     nom: str = Field(min_length=1, max_length=255)
 
 
+class ReordonnerSectionsRequete(BaseModel):
+    """Corps de requête pour réordonner les sections d'un référentiel."""
+
+    ids_ordonnes: list[UUID]
+
+
 class SectionReponse(BaseModel):
     """Représentation HTTP d'une section."""
 
@@ -132,6 +138,12 @@ class ModificationActivationQuestionRequete(BaseModel):
     """Corps de requête pour archiver/réactiver une question."""
 
     actif: bool
+
+
+class ReordonnerQuestionsRequete(BaseModel):
+    """Corps de requête pour réordonner les questions d'une section."""
+
+    ids_ordonnes: list[UUID]
 
 
 class QuestionReferentielReponse(BaseModel):

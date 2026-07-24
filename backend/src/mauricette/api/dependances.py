@@ -64,6 +64,12 @@ from mauricette.application.cas_usage.obtenir_volume_documents_par_jour import (
     ObtenirVolumeDocumentsParJour,
 )
 from mauricette.application.cas_usage.poser_question_chatbot import PoserQuestionChatbot
+from mauricette.application.cas_usage.reordonner_questions_referentiel import (
+    ReordonnerQuestionsReferentiel,
+)
+from mauricette.application.cas_usage.reordonner_sections_referentiel import (
+    ReordonnerSectionsReferentiel,
+)
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
 from mauricette.application.cas_usage.supprimer_document import SupprimerDocument
 from mauricette.application.cas_usage.supprimer_question_referentiel import (
@@ -442,6 +448,13 @@ def obtenir_cas_usage_supprimer_section(
     return SupprimerSectionReferentiel(depot)
 
 
+def obtenir_cas_usage_reordonner_sections(
+    depot: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+) -> ReordonnerSectionsReferentiel:
+    """Fournit le cas d'usage de réordonnancement des sections, prêt à l'emploi."""
+    return ReordonnerSectionsReferentiel(depot)
+
+
 # --- Questions de référentiel ---
 
 
@@ -472,6 +485,13 @@ def obtenir_cas_usage_supprimer_question_referentiel(
 ) -> SupprimerQuestionReferentiel:
     """Fournit le cas d'usage de suppression d'une question, prêt à l'emploi."""
     return SupprimerQuestionReferentiel(depot)
+
+
+def obtenir_cas_usage_reordonner_questions(
+    depot: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+) -> ReordonnerQuestionsReferentiel:
+    """Fournit le cas d'usage de réordonnancement des questions, prêt à l'emploi."""
+    return ReordonnerQuestionsReferentiel(depot)
 
 
 # --- Rattachement référentiel ↔ Appel d'Offres ---

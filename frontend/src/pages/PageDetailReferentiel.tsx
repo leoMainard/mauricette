@@ -1,5 +1,6 @@
-import { Check, Layers, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
+import { Check, GripVertical, Layers, ListChecks, Pencil, Plus, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import type { DragEvent } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ErreurApi } from "../api/client";
 import {
@@ -9,6 +10,8 @@ import {
   modifierQuestionReferentiel,
   modifierReferentiel,
   obtenirReferentiel,
+  reordonnerQuestions,
+  reordonnerSections,
   supprimerQuestionReferentiel,
   supprimerReferentiel,
 } from "../api/referentielApi";
@@ -21,7 +24,7 @@ import type {
 } from "../api/types";
 import { Interrupteur } from "../components/Interrupteur";
 import { Layout } from "../components/Layout";
-import { LIBELLES_FORMAT_REPONSE, OPTIONS_FORMAT_REPONSE } from "../constantesReferentiel";
+import { iconeSection, LIBELLES_FORMAT_REPONSE, OPTIONS_FORMAT_REPONSE } from "../constantesReferentiel";
 
 const CONTENU_QUESTION_VIDE: ContenuQuestionReferentiel = {
   question: "",
@@ -29,6 +32,16 @@ const CONTENU_QUESTION_VIDE: ContenuQuestionReferentiel = {
   aide_extraction: "",
   obligatoire: false,
 };
+
+const TYPE_DRAG_SECTION = "application/x-mauricette-section";
+const TYPE_DRAG_QUESTION = "application/x-mauricette-question";
+
+function deplacer<T>(liste: T[], indexDepart: number, indexArrivee: number): T[] {
+  const copie = [...liste];
+  const [element] = copie.splice(indexDepart, 1);
+  copie.splice(indexArrivee, 0, element);
+  return copie;
+}
 
 /** Page de détail d'un référentiel : KPI, filtres par section, questions, édition. */
 export function PageDetailReferentiel() {
@@ -60,6 +73,13 @@ export function PageDetailReferentiel() {
   const [contenuEditionQuestion, setContenuEditionQuestion] =
     useState<ContenuQuestionReferentiel>(CONTENU_QUESTION_VIDE);
   const [actionQuestionEnCoursId, setActionQuestionEnCoursId] = useState<string | null>(null);
+
+  const [dragSectionIndex, setDragSectionIndex] = useState<number | null>(null);
+  const [dragOverSectionIndex, setDragOverSectionIndex] = useState<number | null>(null);
+  const [dragQuestion, setDragQuestion] = useState<{ sectionId: string; index: number } | null>(null);
+  const [dragOverQuestion, setDragOverQuestion] = useState<{ sectionId: string; index: number } | null>(
+    null,
+  );
 
   async function recharger() {
     if (!id) return;
@@ -200,6 +220,89 @@ export function PageDetailReferentiel() {
     } finally {
       setActionQuestionEnCoursId(null);
     }
+  }
+
+  function onSectionDragStart(evenement: DragEvent, index: number) {
+    evenement.dataTransfer.setData(TYPE_DRAG_SECTION, String(index));
+    evenement.dataTransfer.effectAllowed = "move";
+    setDragSectionIndex(index);
+  }
+
+  function onSectionDragOver(evenement: DragEvent, index: number) {
+    if (!evenement.dataTransfer.types.includes(TYPE_DRAG_SECTION)) return;
+    evenement.preventDefault();
+    evenement.dataTransfer.dropEffect = "move";
+    setDragOverSectionIndex(index);
+  }
+
+  async function onSectionDrop(evenement: DragEvent, index: number) {
+    if (!evenement.dataTransfer.types.includes(TYPE_DRAG_SECTION)) return;
+    evenement.preventDefault();
+    setDragOverSectionIndex(null);
+    if (!detail || dragSectionIndex === null || dragSectionIndex === index) {
+      setDragSectionIndex(null);
+      return;
+    }
+    const nouvellesSections = deplacer(detail.sections, dragSectionIndex, index);
+    setDetail({ ...detail, sections: nouvellesSections });
+    setDragSectionIndex(null);
+    try {
+      await reordonnerSections(detail.referentiel.id, nouvellesSections.map((s) => s.section.id));
+    } catch (e) {
+      setErreur(e instanceof ErreurApi ? e.message : "Erreur lors du réordonnancement des sections.");
+    } finally {
+      await recharger();
+    }
+  }
+
+  function onSectionDragEnd() {
+    setDragSectionIndex(null);
+    setDragOverSectionIndex(null);
+  }
+
+  function onQuestionDragStart(evenement: DragEvent, sectionId: string, index: number) {
+    evenement.dataTransfer.setData(TYPE_DRAG_QUESTION, String(index));
+    evenement.dataTransfer.effectAllowed = "move";
+    setDragQuestion({ sectionId, index });
+  }
+
+  function onQuestionDragOver(evenement: DragEvent, sectionId: string, index: number) {
+    if (!evenement.dataTransfer.types.includes(TYPE_DRAG_QUESTION)) return;
+    if (dragQuestion && dragQuestion.sectionId !== sectionId) return;
+    evenement.preventDefault();
+    evenement.dataTransfer.dropEffect = "move";
+    setDragOverQuestion({ sectionId, index });
+  }
+
+  async function onQuestionDrop(evenement: DragEvent, sectionId: string, index: number) {
+    if (!evenement.dataTransfer.types.includes(TYPE_DRAG_QUESTION)) return;
+    evenement.preventDefault();
+    setDragOverQuestion(null);
+    if (!detail || !dragQuestion || dragQuestion.sectionId !== sectionId || dragQuestion.index === index) {
+      setDragQuestion(null);
+      return;
+    }
+    const indexDepart = dragQuestion.index;
+    const nouvellesSections = detail.sections.map((entree) =>
+      entree.section.id === sectionId
+        ? { ...entree, questions: deplacer(entree.questions, indexDepart, index) }
+        : entree,
+    );
+    setDetail({ ...detail, sections: nouvellesSections });
+    const questionsReordonnees = nouvellesSections.find((e) => e.section.id === sectionId)!.questions;
+    setDragQuestion(null);
+    try {
+      await reordonnerQuestions(sectionId, questionsReordonnees.map((q) => q.id));
+    } catch (e) {
+      setErreur(e instanceof ErreurApi ? e.message : "Erreur lors du réordonnancement des questions.");
+    } finally {
+      await recharger();
+    }
+  }
+
+  function onQuestionDragEnd() {
+    setDragQuestion(null);
+    setDragOverQuestion(null);
   }
 
   if (chargement) {
@@ -512,17 +615,45 @@ export function PageDetailReferentiel() {
           Aucune section pour le moment. Crée une section pour pouvoir y ajouter des questions.
         </p>
       ) : (
-        sectionsAffichees.map(({ section, questions }) => (
-          <div key={section.id} className="groupe-section">
-            <h3 className="groupe-section__titre">
-              {section.nom} <span className="texte-discret">{questions.length}</span>
-            </h3>
+        sectionsAffichees.map(({ section, questions }) => {
+          const indexReel = detail.sections.findIndex((s) => s.section.id === section.id);
+          const IconeSection = iconeSection(section.id);
+          return (
+          <div
+            key={section.id}
+            className={`groupe-section${dragOverSectionIndex === indexReel ? " groupe-section--survol" : ""}${dragSectionIndex === indexReel ? " groupe-section--en-glissement" : ""}`}
+            onDragOver={(e) => sectionFiltree === null && onSectionDragOver(e, indexReel)}
+            onDrop={(e) => sectionFiltree === null && onSectionDrop(e, indexReel)}
+          >
+            <div className="groupe-section__entete">
+              {sectionFiltree === null && (
+                <span
+                  className="poignee-glisser"
+                  draggable
+                  onDragStart={(e) => onSectionDragStart(e, indexReel)}
+                  onDragEnd={onSectionDragEnd}
+                  aria-label={`Réordonner la section ${section.nom}`}
+                >
+                  <GripVertical size={16} aria-hidden="true" />
+                </span>
+              )}
+              <IconeSection size={16} className="groupe-section__icone" aria-hidden="true" />
+              <h3 className="groupe-section__titre">
+                {section.nom} <span className="texte-discret">{questions.length}</span>
+              </h3>
+              <span className="groupe-section__ligne" aria-hidden="true" />
+            </div>
             {questions.length === 0 ? (
               <p className="texte-discret">Aucune question dans cette section.</p>
             ) : (
               <ul className="liste-questions-referentiel">
-                {questions.map((question) => (
-                  <li key={question.id} className="question-item">
+                {questions.map((question, qIndex) => (
+                  <li
+                    key={question.id}
+                    className={`question-item${dragOverQuestion?.sectionId === section.id && dragOverQuestion.index === qIndex ? " question-item--survol" : ""}${dragQuestion?.sectionId === section.id && dragQuestion.index === qIndex ? " question-item--en-glissement" : ""}`}
+                    onDragOver={(e) => onQuestionDragOver(e, section.id, qIndex)}
+                    onDrop={(e) => onQuestionDrop(e, section.id, qIndex)}
+                  >
                     {questionEnEditionId === question.id ? (
                       <div className="question-item__edition">
                         <label htmlFor={`edit-q-${question.id}`}>Intitulé</label>
@@ -600,6 +731,15 @@ export function PageDetailReferentiel() {
                       </div>
                     ) : (
                       <>
+                        <span
+                          className="poignee-glisser"
+                          draggable
+                          onDragStart={(e) => onQuestionDragStart(e, section.id, qIndex)}
+                          onDragEnd={onQuestionDragEnd}
+                          aria-label={`Réordonner la question ${question.question}`}
+                        >
+                          <GripVertical size={16} aria-hidden="true" />
+                        </span>
                         <div className="question-item__contenu">
                           <div className="question-item__titre">
                             {question.question}
@@ -644,7 +784,8 @@ export function PageDetailReferentiel() {
               </ul>
             )}
           </div>
-        ))
+          );
+        })
       )}
     </Layout>
   );

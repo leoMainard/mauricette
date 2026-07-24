@@ -43,12 +43,14 @@ class CreerQuestionReferentiel:
         if self._depot_sections.obtenir_par_id(commande.section_id) is None:
             raise EntiteIntrouvable(f"Section introuvable : {commande.section_id}")
 
+        questions_existantes = self._depot_questions.lister_par_section(commande.section_id)
         question = QuestionReferentiel(
             section_id=commande.section_id,
             question=commande.question,
             format_reponse=commande.format_reponse,
             aide_extraction=commande.aide_extraction,
             obligatoire=commande.obligatoire,
+            ordre=len(questions_existantes),
         )
         self._depot_questions.ajouter(question)
         return question

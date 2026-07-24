@@ -37,6 +37,11 @@ class CreerSectionReferentiel:
         if self._depot_referentiels.obtenir_par_id(commande.referentiel_id) is None:
             raise EntiteIntrouvable(f"Référentiel introuvable : {commande.referentiel_id}")
 
-        section = SectionReferentiel(referentiel_id=commande.referentiel_id, nom=commande.nom)
+        sections_existantes = self._depot_sections.lister_par_referentiel(commande.referentiel_id)
+        section = SectionReferentiel(
+            referentiel_id=commande.referentiel_id,
+            nom=commande.nom,
+            ordre=len(sections_existantes),
+        )
         self._depot_sections.ajouter(section)
         return section

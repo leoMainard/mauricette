@@ -8,7 +8,7 @@ import type {
   Referentiel,
   ReponseQuestion,
 } from "../api/types";
-import { LIBELLES_FORMAT_REPONSE } from "../constantesReferentiel";
+import { iconeSection, LIBELLES_FORMAT_REPONSE } from "../constantesReferentiel";
 import { WidgetFeedbackReponse } from "./WidgetFeedbackReponse";
 
 /** Nom de fichier court (sans le chemin de dossier issu d'un zip éclaté), pour les pastilles de citation. */
@@ -147,18 +147,24 @@ export function OngletQuestions({
         </p>
       ) : (
         details.map((detail) => (
-          <div key={detail.referentiel.id} className="groupe-section">
-            <h3 className="groupe-section__titre">{detail.referentiel.nom}</h3>
+          <div key={detail.referentiel.id} className="groupe-referentiel">
+            <h3 className="groupe-referentiel__titre">{detail.referentiel.nom}</h3>
             {detail.sections
               .filter(({ questions }) => questions.some((q) => q.actif))
-              .map(({ section, questions }) => (
-                <div key={section.id} style={{ marginBottom: "16px" }}>
-                  <p className="texte-discret" style={{ marginBottom: "8px" }}>
-                    {section.nom}
-                  </p>
+              .map(({ section, questions }) => {
+                const IconeSection = iconeSection(section.id);
+                const questionsActives = questions.filter((q) => q.actif);
+                return (
+                <div key={section.id} className="groupe-section">
+                  <div className="groupe-section__entete">
+                    <IconeSection size={16} className="groupe-section__icone" aria-hidden="true" />
+                    <h4 className="groupe-section__titre">
+                      {section.nom} <span className="texte-discret">{questionsActives.length}</span>
+                    </h4>
+                    <span className="groupe-section__ligne" aria-hidden="true" />
+                  </div>
                   <ul className="liste-questions-referentiel">
-                    {questions
-                      .filter((q) => q.actif)
+                    {questionsActives
                       .map((question) => {
                         const reponse = reponsesParQuestion.get(question.id);
                         return (
@@ -245,7 +251,8 @@ export function OngletQuestions({
                       })}
                   </ul>
                 </div>
-              ))}
+                );
+              })}
           </div>
         ))
       )}
