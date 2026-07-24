@@ -14,7 +14,9 @@ from mauricette.domaine.ports.referentiel_appel_offre_repository import (
 from mauricette.infrastructure.persistence.postgres.mappers import referentiel_vers_entite
 from mauricette.infrastructure.persistence.postgres.modeles import (
     AppelOffreReferentielModele,
+    QuestionReferentielModele,
     ReferentielModele,
+    SectionReferentielModele,
 )
 
 
@@ -70,3 +72,20 @@ class ReferentielAppelOffreRepositorySQL(ReferentielAppelOffreRepositoryPort):
         ).group_by(AppelOffreReferentielModele.referentiel_id)
         resultats = self._session.execute(requete).all()
         return {referentiel_id: nombre for referentiel_id, nombre in resultats}
+
+    def compter_questions_actives_par_ao(self) -> dict[UUID, int]:
+        requete = (
+            select(AppelOffreReferentielModele.appel_offre_id, func.count(QuestionReferentielModele.id))
+            .join(
+                SectionReferentielModele,
+                SectionReferentielModele.referentiel_id == AppelOffreReferentielModele.referentiel_id,
+            )
+            .join(
+                QuestionReferentielModele,
+                QuestionReferentielModele.section_id == SectionReferentielModele.id,
+            )
+            .where(QuestionReferentielModele.actif.is_(True))
+            .group_by(AppelOffreReferentielModele.appel_offre_id)
+        )
+        resultats = self._session.execute(requete).all()
+        return {appel_offre_id: nombre for appel_offre_id, nombre in resultats}

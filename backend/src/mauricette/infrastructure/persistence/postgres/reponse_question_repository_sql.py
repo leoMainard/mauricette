@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.reponse_question import ReponseQuestion
@@ -58,3 +58,12 @@ class ReponseQuestionRepositorySQL(ReponseQuestionRepositoryPort):
         modele.statut = reponse.statut.value
         modele.date_maj = reponse.date_maj
         self._session.commit()
+
+    def compter_avec_contenu_par_appel_offre(self) -> dict[UUID, int]:
+        requete = (
+            select(ReponseQuestionModele.appel_offre_id, func.count(ReponseQuestionModele.id))
+            .where(ReponseQuestionModele.contenu.is_not(None))
+            .group_by(ReponseQuestionModele.appel_offre_id)
+        )
+        resultats = self._session.execute(requete).all()
+        return {appel_offre_id: nombre for appel_offre_id, nombre in resultats}

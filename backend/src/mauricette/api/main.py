@@ -13,6 +13,7 @@ from mauricette.api.routes import (
     routeur_referentiels,
     routeur_reponses,
     routeur_sections_referentiel,
+    routeur_statistiques,
     routeur_traitement_rag,
 )
 from mauricette.config.parametres import obtenir_parametres
@@ -43,6 +44,7 @@ app.include_router(routeur_traitement_rag, prefix="/api")
 app.include_router(routeur_reponses, prefix="/api")
 app.include_router(routeur_chatbot, prefix="/api")
 app.include_router(routeur_feedback, prefix="/api")
+app.include_router(routeur_statistiques, prefix="/api")
 
 
 @app.get("/api/sante", tags=["Technique"])

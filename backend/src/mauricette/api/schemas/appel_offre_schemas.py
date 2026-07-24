@@ -66,6 +66,8 @@ class AppelOffreAvecStatistiquesReponse(BaseModel):
     nombre_documents: int
     taille_totale_octets: int
     en_erreur_analyse: bool
+    questions_actives: int
+    reponses_generees: int
 
     @classmethod
     def depuis_dto(cls, dto: AppelOffreAvecStatistiques) -> "AppelOffreAvecStatistiquesReponse":
@@ -75,6 +77,8 @@ class AppelOffreAvecStatistiquesReponse(BaseModel):
             nombre_documents=dto.statistiques.nombre_documents,
             taille_totale_octets=dto.statistiques.taille_totale_octets,
             en_erreur_analyse=dto.en_erreur_analyse,
+            questions_actives=dto.questions_actives,
+            reponses_generees=dto.reponses_generees,
         )
 
 

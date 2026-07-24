@@ -38,3 +38,13 @@ class ReferentielAppelOffreRepositoryPort(ABC):
         Une seule requête agrégée pour tous les référentiels (pas de N+1).
         """
         raise NotImplementedError
+
+    @abstractmethod
+    def compter_questions_actives_par_ao(self) -> dict[UUID, int]:
+        """Retourne, pour chaque AO, le nombre de questions actives parmi ses référentiels attachés.
+
+        Une seule requête agrégée (jointure appel_offre_referentiel → section_referentiel
+        → question_referentiel), pas de N+1. Utilisé pour la barre de progression
+        d'analyse dans la liste des AO.
+        """
+        raise NotImplementedError

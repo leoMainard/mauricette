@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+from datetime import date
 from uuid import UUID
 
 from mauricette.domaine.entites.document import Document
@@ -59,5 +60,19 @@ class DocumentRepositoryPort(ABC):
 
         Une seule requête agrégée (plutôt qu'un comptage par AO) pour éviter le
         problème des N+1 requêtes lors de l'affichage de la liste des AO.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def compter_traites_par_jour(self) -> dict[date, int]:
+        """Retourne, pour chaque jour, le nombre de documents dont le traitement RAG
+        s'est terminé avec succès ce jour-là.
+
+        Granularité journalière (plutôt qu'hebdomadaire) pour permettre au frontend de
+        reconstituer lui-même des vues jour/semaine/mois par regroupement. S'appuie
+        sur `date_maj` des documents au statut `traite` : cette date n'est plus
+        modifiée une fois ce statut atteint (aucune autre mutation ne s'applique à un
+        document déjà traité), donc c'est une date de complétion fiable. Une seule
+        requête agrégée pour tout l'historique, pas de N+1.
         """
         raise NotImplementedError
