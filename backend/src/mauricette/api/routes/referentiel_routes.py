@@ -12,6 +12,7 @@ from mauricette.api.dependances import (
     obtenir_cas_usage_lister_referentiels,
     obtenir_cas_usage_modifier_referentiel,
     obtenir_cas_usage_obtenir_referentiel_detail,
+    obtenir_cas_usage_reordonner_sections,
     obtenir_cas_usage_supprimer_referentiel,
 )
 from mauricette.api.schemas.referentiel_schemas import (
@@ -21,6 +22,7 @@ from mauricette.api.schemas.referentiel_schemas import (
     ModificationReferentielRequete,
     ReferentielAvecStatistiquesReponse,
     ReferentielReponse,
+    ReordonnerSectionsRequete,
     SectionReponse,
 )
 from mauricette.application.cas_usage.creer_referentiel import (
@@ -37,8 +39,12 @@ from mauricette.application.cas_usage.modifier_referentiel import (
     ModifierReferentiel,
 )
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
+from mauricette.application.cas_usage.reordonner_sections_referentiel import (
+    CommandeReordonnerSections,
+    ReordonnerSectionsReferentiel,
+)
 from mauricette.application.cas_usage.supprimer_referentiel import SupprimerReferentiel
-from mauricette.domaine.exceptions import EntiteIntrouvable
+from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurValidationDomaine
 
 routeur = APIRouter(prefix="/referentiels", tags=["Référentiels"])
 
@@ -128,3 +134,21 @@ def creer_section(
     except EntiteIntrouvable as erreur:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
     return SectionReponse.depuis_entite(section)
+
+
+@routeur.patch("/{referentiel_id}/sections/ordre", response_model=list[SectionReponse])
+def reordonner_sections(
+    referentiel_id: UUID,
+    requete: ReordonnerSectionsRequete,
+    cas_usage: ReordonnerSectionsReferentiel = Depends(obtenir_cas_usage_reordonner_sections),
+) -> list[SectionReponse]:
+    """Applique un nouvel ordre d'affichage aux sections d'un référentiel."""
+    try:
+        sections = cas_usage.executer(
+            CommandeReordonnerSections(referentiel_id=referentiel_id, ids_ordonnes=requete.ids_ordonnes)
+        )
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
+    except ErreurValidationDomaine as erreur:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=str(erreur)) from erreur
+    return [SectionReponse.depuis_entite(section) for section in sections]

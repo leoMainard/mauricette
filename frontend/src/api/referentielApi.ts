@@ -65,6 +65,16 @@ export async function supprimerSection(sectionId: string): Promise<void> {
   return requeteJson<void>(`/sections/${sectionId}`, { method: "DELETE" });
 }
 
+export async function reordonnerSections(
+  referentielId: string,
+  idsOrdonnes: string[],
+): Promise<SectionReferentiel[]> {
+  return requeteJson<SectionReferentiel[]>(`/referentiels/${referentielId}/sections/ordre`, {
+    method: "PATCH",
+    body: JSON.stringify({ ids_ordonnes: idsOrdonnes }),
+  });
+}
+
 // --- Questions ---
 
 export async function creerQuestionReferentiel(
@@ -99,6 +109,16 @@ export async function changerActivationQuestion(
 
 export async function supprimerQuestionReferentiel(questionId: string): Promise<void> {
   return requeteJson<void>(`/questions/${questionId}`, { method: "DELETE" });
+}
+
+export async function reordonnerQuestions(
+  sectionId: string,
+  idsOrdonnes: string[],
+): Promise<QuestionReferentiel[]> {
+  return requeteJson<QuestionReferentiel[]>(`/sections/${sectionId}/questions/ordre`, {
+    method: "PATCH",
+    body: JSON.stringify({ ids_ordonnes: idsOrdonnes }),
+  });
 }
 
 // --- Rattachement référentiel ↔ Appel d'Offres ---
