@@ -30,10 +30,16 @@ class AppelOffreRepositorySQL(AppelOffreRepositoryPort):
         modele = self._session.get(AppelOffreModele, appel_offre_id)
         return appel_offre_vers_entite(modele) if modele else None
 
-    def lister_tous(self, terme_recherche: str | None = None) -> list[AppelOffre]:
+    def lister_tous(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[AppelOffre]:
         requete = select(AppelOffreModele).order_by(AppelOffreModele.date_creation.desc())
         if terme_recherche:
             requete = requete.where(AppelOffreModele.nom.ilike(f"%{terme_recherche}%"))
+        if ids_proprietaires_visibles is not None:
+            requete = requete.where(AppelOffreModele.cree_par_id.in_(ids_proprietaires_visibles))
         modeles = self._session.execute(requete).scalars().all()
         return [appel_offre_vers_entite(modele) for modele in modeles]
 

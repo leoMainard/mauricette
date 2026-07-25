@@ -14,6 +14,8 @@ from mauricette.api.dependances import (
     obtenir_cas_usage_obtenir_referentiel_detail,
     obtenir_cas_usage_reordonner_sections,
     obtenir_cas_usage_supprimer_referentiel,
+    obtenir_ids_proprietaires_visibles,
+    obtenir_utilisateur_courant,
 )
 from mauricette.api.schemas.referentiel_schemas import (
     CreationReferentielRequete,
@@ -44,6 +46,7 @@ from mauricette.application.cas_usage.reordonner_sections_referentiel import (
     ReordonnerSectionsReferentiel,
 )
 from mauricette.application.cas_usage.supprimer_referentiel import SupprimerReferentiel
+from mauricette.domaine.entites.utilisateur import Utilisateur
 from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurValidationDomaine
 
 routeur = APIRouter(prefix="/referentiels", tags=["Référentiels"])
@@ -52,12 +55,16 @@ routeur = APIRouter(prefix="/referentiels", tags=["Référentiels"])
 @routeur.post("", response_model=ReferentielReponse, status_code=status.HTTP_201_CREATED)
 def creer_referentiel(
     requete: CreationReferentielRequete,
+    utilisateur: Utilisateur = Depends(obtenir_utilisateur_courant),
     cas_usage: CreerReferentiel = Depends(obtenir_cas_usage_creer_referentiel),
 ) -> ReferentielReponse:
-    """Crée un nouveau référentiel."""
+    """Crée un nouveau référentiel, rattaché à l'utilisateur connecté."""
     referentiel = cas_usage.executer(
         CommandeCreerReferentiel(
-            nom=requete.nom, description=requete.description, actif_par_defaut=requete.actif_par_defaut
+            nom=requete.nom,
+            cree_par_id=utilisateur.id,
+            description=requete.description,
+            actif_par_defaut=requete.actif_par_defaut,
         )
     )
     return ReferentielReponse.depuis_entite(referentiel)
@@ -66,10 +73,15 @@ def creer_referentiel(
 @routeur.get("", response_model=list[ReferentielAvecStatistiquesReponse])
 def lister_referentiels(
     recherche: str | None = Query(default=None, description="Filtre les référentiels par nom"),
+    ids_proprietaires_visibles: list[UUID] = Depends(obtenir_ids_proprietaires_visibles),
     cas_usage: ListerReferentiels = Depends(obtenir_cas_usage_lister_referentiels),
 ) -> list[ReferentielAvecStatistiquesReponse]:
-    """Liste les référentiels, triés par nom, avec leurs statistiques."""
-    return [ReferentielAvecStatistiquesReponse.depuis_dto(dto) for dto in cas_usage.executer(recherche)]
+    """Liste les référentiels visibles par l'utilisateur connecté (les siens, plus
+    ceux de son groupe le cas échéant), triés par nom, avec leurs statistiques."""
+    return [
+        ReferentielAvecStatistiquesReponse.depuis_dto(dto)
+        for dto in cas_usage.executer(recherche, ids_proprietaires_visibles)
+    ]
 
 
 @routeur.get("/{referentiel_id}", response_model=DetailReferentielReponse)

@@ -44,6 +44,10 @@ class Parametres(BaseSettings):
     # --- API ---
     api_cors_origins: list[str] = ["http://localhost:5173"]
 
+    # --- Authentification ---
+    jwt_secret: str = ""
+    jwt_expiration_minutes: int = 60 * 24 * 7  # 7 jours
+
     # --- RAG (extraction, embeddings, génération) ---
     mistral_api_key: str = ""
     mistral_embed_model: str = "mistral-embed"

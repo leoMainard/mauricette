@@ -15,19 +15,18 @@ from pydantic import BaseModel, Field
 from mauricette.api.schemas.document_schemas import DocumentReponse
 from mauricette.application.cas_usage.lister_appels_offre import AppelOffreAvecStatistiques
 from mauricette.application.cas_usage.obtenir_appel_offre import DetailAppelOffre
-from mauricette.domaine.entites.appel_offre import UTILISATEUR_NON_AUTHENTIFIE, AppelOffre
+from mauricette.domaine.entites.appel_offre import AppelOffre
 from mauricette.domaine.entites.enums import StatutAppelOffre
 
 
 class CreationAppelOffreRequete(BaseModel):
     """Corps de requête pour la création d'un Appel d'Offres.
 
-    `cree_par` est optionnel tant qu'il n'y a pas d'authentification : il sera
-    déduit automatiquement de l'utilisateur connecté une fois celle-ci en place.
+    `cree_par`/`cree_par_id` ne sont pas fournis par le client : ils sont déduits
+    de l'utilisateur authentifié par la route.
     """
 
     nom: str = Field(min_length=1, max_length=255, description="Nom donné à l'Appel d'Offres")
-    cree_par: str = Field(default=UTILISATEUR_NON_AUTHENTIFIE, max_length=255)
 
 
 class ModificationAppelOffreRequete(BaseModel):

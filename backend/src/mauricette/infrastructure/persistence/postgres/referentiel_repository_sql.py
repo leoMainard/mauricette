@@ -30,10 +30,16 @@ class ReferentielRepositorySQL(ReferentielRepositoryPort):
         modele = self._session.get(ReferentielModele, referentiel_id)
         return referentiel_vers_entite(modele) if modele else None
 
-    def lister_tous(self, terme_recherche: str | None = None) -> list[Referentiel]:
+    def lister_tous(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[Referentiel]:
         requete = select(ReferentielModele).order_by(ReferentielModele.nom)
         if terme_recherche:
             requete = requete.where(ReferentielModele.nom.ilike(f"%{terme_recherche}%"))
+        if ids_proprietaires_visibles is not None:
+            requete = requete.where(ReferentielModele.cree_par_id.in_(ids_proprietaires_visibles))
         modeles = self._session.execute(requete).scalars().all()
         return [referentiel_vers_entite(modele) for modele in modeles]
 

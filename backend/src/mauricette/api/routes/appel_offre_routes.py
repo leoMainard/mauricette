@@ -12,6 +12,8 @@ from mauricette.api.dependances import (
     obtenir_cas_usage_modifier_appel_offre,
     obtenir_cas_usage_obtenir_appel_offre,
     obtenir_cas_usage_supprimer_appel_offre,
+    obtenir_ids_proprietaires_visibles,
+    obtenir_utilisateur_courant,
 )
 from mauricette.api.schemas.appel_offre_schemas import (
     AppelOffreAvecStatistiquesReponse,
@@ -31,6 +33,7 @@ from mauricette.application.cas_usage.modifier_appel_offre import (
 )
 from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOffre
 from mauricette.application.cas_usage.supprimer_appel_offre import SupprimerAppelOffre
+from mauricette.domaine.entites.utilisateur import Utilisateur
 from mauricette.domaine.exceptions import EntiteIntrouvable
 
 routeur = APIRouter(prefix="/appels-offre", tags=["Appels d'Offres"])
@@ -39,11 +42,14 @@ routeur = APIRouter(prefix="/appels-offre", tags=["Appels d'Offres"])
 @routeur.post("", response_model=AppelOffreReponse, status_code=status.HTTP_201_CREATED)
 def creer_appel_offre(
     requete: CreationAppelOffreRequete,
+    utilisateur: Utilisateur = Depends(obtenir_utilisateur_courant),
     cas_usage: CreerAppelOffre = Depends(obtenir_cas_usage_creer_appel_offre),
 ) -> AppelOffreReponse:
-    """Crée un nouvel Appel d'Offres."""
+    """Crée un nouvel Appel d'Offres, rattaché à l'utilisateur connecté."""
     appel_offre = cas_usage.executer(
-        CommandeCreerAppelOffre(nom=requete.nom, cree_par=requete.cree_par)
+        CommandeCreerAppelOffre(
+            nom=requete.nom, cree_par=utilisateur.nom, cree_par_id=utilisateur.id
+        )
     )
     return AppelOffreReponse.depuis_entite(appel_offre)
 
@@ -51,11 +57,14 @@ def creer_appel_offre(
 @routeur.get("", response_model=list[AppelOffreAvecStatistiquesReponse])
 def lister_appels_offre(
     recherche: str | None = Query(default=None, description="Filtre les AO dont le nom contient ce terme"),
+    ids_proprietaires_visibles: list[UUID] = Depends(obtenir_ids_proprietaires_visibles),
     cas_usage: ListerAppelsOffre = Depends(obtenir_cas_usage_lister_appels_offre),
 ) -> list[AppelOffreAvecStatistiquesReponse]:
-    """Liste les Appels d'Offres (du plus récent au plus ancien), avec leurs statistiques de documents."""
+    """Liste les Appels d'Offres visibles par l'utilisateur connecté (les siens, plus
+    ceux de son groupe le cas échéant), du plus récent au plus ancien."""
     return [
-        AppelOffreAvecStatistiquesReponse.depuis_dto(dto) for dto in cas_usage.executer(recherche)
+        AppelOffreAvecStatistiquesReponse.depuis_dto(dto)
+        for dto in cas_usage.executer(recherche, ids_proprietaires_visibles)
     ]
 
 

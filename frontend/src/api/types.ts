@@ -226,3 +226,21 @@ export interface VolumeJour {
   jour: string;
   nombre: number;
 }
+
+export type StatutUtilisateur = "user" | "admin";
+
+export interface Utilisateur {
+  id: string;
+  email: string;
+  nom: string;
+  statut: StatutUtilisateur;
+  groupe_id: string | null;
+  date_creation: string;
+  date_maj: string;
+}
+
+export interface GroupeUtilisateur {
+  id: string;
+  nom: string;
+  date_creation: string;
+}

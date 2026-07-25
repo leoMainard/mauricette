@@ -22,10 +22,16 @@ class ReferentielRepositoryPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def lister_tous(self, terme_recherche: str | None = None) -> list[Referentiel]:
+    def lister_tous(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[Referentiel]:
         """Retourne les référentiels, triés par nom.
 
         Si `terme_recherche` est fourni, ne retourne que ceux dont le nom le contient.
+        Si `ids_proprietaires_visibles` est fourni, ne retourne que ceux créés par l'un
+        de ces utilisateurs (visibilité scopée par utilisateur/groupe).
         """
         raise NotImplementedError
 

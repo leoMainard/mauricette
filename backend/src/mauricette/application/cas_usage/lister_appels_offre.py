@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from mauricette.domaine.entites.appel_offre import AppelOffre
 from mauricette.domaine.entites.enums import StatutAppelOffre, TypeTache
@@ -51,9 +52,15 @@ class ListerAppelsOffre:
         self._depot_referentiels_ao = depot_referentiels_ao
         self._depot_reponses = depot_reponses
 
-    def executer(self, terme_recherche: str | None = None) -> list[AppelOffreAvecStatistiques]:
+    def executer(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[AppelOffreAvecStatistiques]:
         """Exécute le cas d'usage."""
-        appels_offre = self._depot_appels_offre.lister_tous(terme_recherche)
+        appels_offre = self._depot_appels_offre.lister_tous(
+            terme_recherche, ids_proprietaires_visibles
+        )
         statistiques_par_ao = self._depot_documents.compter_par_appel_offre()
         ao_ids_en_erreur = self._depot_taches.lister_reference_ids_en_echec(
             TypeTache.REGENERATION_REPONSES_AO

@@ -97,6 +97,72 @@
   }
 }
 
+.barre-laterale__pied {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.barre-laterale__utilisateur {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--rayon);
+  color: var(--text-discret);
+}
+
+.barre-laterale__utilisateur:hover {
+  background: var(--code-bg);
+  text-decoration: none;
+}
+
+.barre-laterale__utilisateur-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.barre-laterale__utilisateur-nom {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barre-laterale__utilisateur-email {
+  font-size: 0.75rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.barre-laterale__deconnexion {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--rayon);
+  color: var(--text-discret);
+  font-size: 0.9rem;
+  font-weight: 500;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  width: 100%;
+}
+
+.barre-laterale__deconnexion:hover {
+  background: var(--code-bg);
+  color: var(--erreur);
+}
+
 .zone-principale {
   flex: 1;
   min-width: 0;
@@ -309,8 +375,12 @@
 
 .contenu-principal input[type="text"],
 .contenu-principal input[type="search"],
+.contenu-principal input[type="email"],
+.contenu-principal input[type="password"],
 .contenu-principal textarea,
-.contenu-principal select {
+.contenu-principal select,
+.page-auth input,
+.page-auth select {
   font: inherit;
   padding: 11px 14px;
   border: 1px solid var(--border);
@@ -328,8 +398,12 @@
 
 .contenu-principal input[type="text"]:focus,
 .contenu-principal input[type="search"]:focus,
+.contenu-principal input[type="email"]:focus,
+.contenu-principal input[type="password"]:focus,
 .contenu-principal textarea:focus,
-.contenu-principal select:focus {
+.contenu-principal select:focus,
+.page-auth input:focus,
+.page-auth select:focus {
   outline: none;
   border-color: var(--accent-border);
   box-shadow: 0 0 0 3px var(--accent-bg);
@@ -342,7 +416,8 @@
 /* --- Boutons --- */
 
 .contenu-principal button,
-.barre-superieure button {
+.barre-superieure button,
+.page-auth button {
   font: inherit;
   font-weight: 600;
   padding: 11px 22px;
@@ -357,33 +432,38 @@
 }
 
 .contenu-principal button:hover:not(:disabled),
-.barre-superieure button:hover:not(:disabled) {
+.barre-superieure button:hover:not(:disabled),
+.page-auth button:hover:not(:disabled) {
   background: var(--marine-700);
   border-color: var(--marine-700);
 }
 
 @media (prefers-color-scheme: dark) {
   .contenu-principal button,
-  .barre-superieure button {
+  .barre-superieure button,
+  .page-auth button {
     border-color: var(--accent);
     background: var(--accent);
     color: var(--marine-700);
   }
 
   .contenu-principal button:hover:not(:disabled),
-  .barre-superieure button:hover:not(:disabled) {
+  .barre-superieure button:hover:not(:disabled),
+  .page-auth button:hover:not(:disabled) {
     background: var(--accent-hover);
     border-color: var(--accent-hover);
   }
 }
 
 .contenu-principal button:active:not(:disabled),
-.barre-superieure button:active:not(:disabled) {
+.barre-superieure button:active:not(:disabled),
+.page-auth button:active:not(:disabled) {
   transform: translateY(1px);
 }
 
 .contenu-principal button:disabled,
-.barre-superieure button:disabled {
+.barre-superieure button:disabled,
+.page-auth button:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
@@ -1948,4 +2028,34 @@
 
 .icone-rotation {
   animation: rotation 1s linear infinite;
+}
+
+/* --- Pages d'authentification (connexion / inscription) --- */
+
+.page-auth {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-page);
+  padding: 24px;
+}
+
+.page-auth__carte {
+  width: 100%;
+  max-width: 380px;
+}
+
+.page-auth__marque {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-h);
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.page-auth__lien-secondaire {
+  text-align: center;
 }
