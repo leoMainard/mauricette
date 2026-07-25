@@ -7,17 +7,25 @@ eux-mêmes définis uniquement en fonction des ports du domaine.
 
 from collections.abc import Iterator
 from functools import lru_cache
+from uuid import UUID
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.orm import Session
 
+from mauricette.api.securite import NOM_COOKIE_SESSION, decoder_jeton
+from mauricette.application.cas_usage.affecter_groupe_utilisateur import (
+    AffecterGroupeUtilisateur,
+)
 from mauricette.application.cas_usage.attacher_referentiel_appel_offre import (
     AttacherReferentielAAppelOffre,
 )
 from mauricette.application.cas_usage.changer_activation_question_referentiel import (
     ChangerActivationQuestionReferentiel,
 )
+from mauricette.application.cas_usage.changer_mot_de_passe import ChangerMotDePasse
+from mauricette.application.cas_usage.connecter_utilisateur import ConnecterUtilisateur
 from mauricette.application.cas_usage.creer_appel_offre import CreerAppelOffre
+from mauricette.application.cas_usage.creer_groupe_utilisateur import CreerGroupeUtilisateur
 from mauricette.application.cas_usage.creer_question_referentiel import CreerQuestionReferentiel
 from mauricette.application.cas_usage.creer_referentiel import CreerReferentiel
 from mauricette.application.cas_usage.creer_section_referentiel import CreerSectionReferentiel
@@ -35,9 +43,12 @@ from mauricette.application.cas_usage.enregistrer_feedback_reponse import (
 from mauricette.application.cas_usage.exporter_reponses_appel_offre import (
     ExporterReponsesAppelOffre,
 )
+from mauricette.application.cas_usage.inscrire_utilisateur import InscrireUtilisateur
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
 from mauricette.application.cas_usage.lister_feedback_reponses import ListerFeedbackReponses
+from mauricette.application.cas_usage.lister_groupes_utilisateur import ListerGroupesUtilisateur
 from mauricette.application.cas_usage.lister_messages_chatbot import ListerMessagesChatbot
+from mauricette.application.cas_usage.lister_utilisateurs import ListerUtilisateurs
 from mauricette.application.cas_usage.obtenir_etat_analyse_appel_offre import (
     ObtenirEtatAnalyseAppelOffre,
 )
@@ -54,6 +65,9 @@ from mauricette.application.cas_usage.lister_reponses_appel_offre import ListerR
 from mauricette.application.cas_usage.modifier_appel_offre import ModifierAppelOffre
 from mauricette.application.cas_usage.modifier_question_referentiel import (
     ModifierQuestionReferentiel,
+)
+from mauricette.application.cas_usage.modifier_profil_utilisateur import (
+    ModifierProfilUtilisateur,
 )
 from mauricette.application.cas_usage.modifier_referentiel import ModifierReferentiel
 from mauricette.application.cas_usage.modifier_section_referentiel import (
@@ -87,6 +101,9 @@ from mauricette.application.cas_usage.telecharger_documents_appel_offre import (
 )
 from mauricette.application.cas_usage.valider_reponse import ValiderReponse
 from mauricette.config.parametres import obtenir_parametres
+from mauricette.domaine.entites.enums import StatutUtilisateur
+from mauricette.domaine.entites.utilisateur import Utilisateur
+from mauricette.domaine.exceptions import IdentifiantsInvalides
 from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
 from mauricette.domaine.ports.chunk_repository import ChunkRepositoryPort
 from mauricette.domaine.ports.decoupeur_document import DecoupeurDocumentPort
@@ -99,6 +116,9 @@ from mauricette.domaine.ports.extracteur_document import ExtracteurDocumentPort
 from mauricette.domaine.ports.feedback_general_repository import FeedbackGeneralRepositoryPort
 from mauricette.domaine.ports.feedback_reponse_repository import FeedbackReponseRepositoryPort
 from mauricette.domaine.ports.generation_reponse import GenerationReponsePort
+from mauricette.domaine.ports.groupe_utilisateur_repository import (
+    GroupeUtilisateurRepositoryPort,
+)
 from mauricette.domaine.ports.message_chatbot_repository import MessageChatbotRepositoryPort
 from mauricette.domaine.ports.question_referentiel_repository import (
     QuestionReferentielRepositoryPort,
@@ -113,6 +133,7 @@ from mauricette.domaine.ports.section_referentiel_repository import (
 )
 from mauricette.domaine.ports.stockage_document import StockageDocumentPort
 from mauricette.domaine.ports.tache_traitement_repository import TacheTraitementRepositoryPort
+from mauricette.domaine.ports.utilisateur_repository import UtilisateurRepositoryPort
 from mauricette.infrastructure.persistence.postgres.appel_offre_repository_sql import (
     AppelOffreRepositorySQL,
 )
@@ -129,6 +150,9 @@ from mauricette.infrastructure.persistence.postgres.feedback_general_repository_
 )
 from mauricette.infrastructure.persistence.postgres.feedback_reponse_repository_sql import (
     FeedbackReponseRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.groupe_utilisateur_repository_sql import (
+    GroupeUtilisateurRepositorySQL,
 )
 from mauricette.infrastructure.persistence.postgres.message_chatbot_repository_sql import (
     MessageChatbotRepositorySQL,
@@ -150,6 +174,9 @@ from mauricette.infrastructure.persistence.postgres.section_referentiel_reposito
 )
 from mauricette.infrastructure.persistence.postgres.tache_traitement_repository_sql import (
     TacheTraitementRepositorySQL,
+)
+from mauricette.infrastructure.persistence.postgres.utilisateur_repository_sql import (
+    UtilisateurRepositorySQL,
 )
 from mauricette.infrastructure.rag.decoupeur_hierarchique import DecoupeurHierarchique
 from mauricette.infrastructure.rag.docling_adapter import DoclingAdapter
@@ -293,6 +320,132 @@ def obtenir_depot_feedback_reponse(
 ) -> FeedbackReponseRepositoryPort:
     """Fournit l'implémentation courante du port `FeedbackReponseRepositoryPort`."""
     return FeedbackReponseRepositorySQL(session)
+
+
+def obtenir_depot_utilisateurs(
+    session: Session = Depends(obtenir_session),
+) -> UtilisateurRepositoryPort:
+    """Fournit l'implémentation courante du port `UtilisateurRepositoryPort`."""
+    return UtilisateurRepositorySQL(session)
+
+
+def obtenir_depot_groupes_utilisateur(
+    session: Session = Depends(obtenir_session),
+) -> GroupeUtilisateurRepositoryPort:
+    """Fournit l'implémentation courante du port `GroupeUtilisateurRepositoryPort`."""
+    return GroupeUtilisateurRepositorySQL(session)
+
+
+# --- Authentification ---
+
+
+def obtenir_utilisateur_courant(
+    request: Request,
+    depot_utilisateurs: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> Utilisateur:
+    """Fournit l'utilisateur actuellement connecté, à partir du cookie de session.
+
+    Lève une `HTTPException(401)` si le cookie est absent, invalide, expiré, ou
+    si l'utilisateur qu'il désigne n'existe plus.
+    """
+    jeton = request.cookies.get(NOM_COOKIE_SESSION)
+    if not jeton:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Non authentifié.")
+    try:
+        utilisateur_id = decoder_jeton(jeton, obtenir_parametres())
+    except IdentifiantsInvalides as erreur:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(erreur)) from erreur
+
+    utilisateur = depot_utilisateurs.obtenir_par_id(utilisateur_id)
+    if utilisateur is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur introuvable."
+        )
+    return utilisateur
+
+
+def obtenir_utilisateur_admin(
+    utilisateur: Utilisateur = Depends(obtenir_utilisateur_courant),
+) -> Utilisateur:
+    """Fournit l'utilisateur courant, en exigeant le statut ADMIN."""
+    if utilisateur.statut != StatutUtilisateur.ADMIN:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Réservé aux administrateurs."
+        )
+    return utilisateur
+
+
+def obtenir_ids_proprietaires_visibles(
+    utilisateur: Utilisateur = Depends(obtenir_utilisateur_courant),
+    depot_utilisateurs: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> list[UUID]:
+    """Calcule les ids dont les AO/référentiels sont visibles par l'utilisateur courant :
+    lui-même, plus tout autre membre de son groupe (liste vide de membres s'il n'a
+    pas de groupe)."""
+    ids = [utilisateur.id]
+    if utilisateur.groupe_id is not None:
+        ids.extend(depot_utilisateurs.lister_ids_par_groupe(utilisateur.groupe_id))
+    return ids
+
+
+def obtenir_cas_usage_inscrire_utilisateur(
+    depot: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> InscrireUtilisateur:
+    """Fournit le cas d'usage d'inscription d'un utilisateur, prêt à l'emploi."""
+    return InscrireUtilisateur(depot)
+
+
+def obtenir_cas_usage_connecter_utilisateur(
+    depot: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> ConnecterUtilisateur:
+    """Fournit le cas d'usage de connexion d'un utilisateur, prêt à l'emploi."""
+    return ConnecterUtilisateur(depot)
+
+
+def obtenir_cas_usage_modifier_profil_utilisateur(
+    depot: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> ModifierProfilUtilisateur:
+    """Fournit le cas d'usage de modification du profil, prêt à l'emploi."""
+    return ModifierProfilUtilisateur(depot)
+
+
+def obtenir_cas_usage_changer_mot_de_passe(
+    depot: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> ChangerMotDePasse:
+    """Fournit le cas d'usage de changement de mot de passe, prêt à l'emploi."""
+    return ChangerMotDePasse(depot)
+
+
+# --- Groupes d'utilisateurs (administration) ---
+
+
+def obtenir_cas_usage_creer_groupe_utilisateur(
+    depot: GroupeUtilisateurRepositoryPort = Depends(obtenir_depot_groupes_utilisateur),
+) -> CreerGroupeUtilisateur:
+    """Fournit le cas d'usage de création d'un groupe d'utilisateurs, prêt à l'emploi."""
+    return CreerGroupeUtilisateur(depot)
+
+
+def obtenir_cas_usage_lister_groupes_utilisateur(
+    depot: GroupeUtilisateurRepositoryPort = Depends(obtenir_depot_groupes_utilisateur),
+) -> ListerGroupesUtilisateur:
+    """Fournit le cas d'usage de consultation des groupes d'utilisateurs, prêt à l'emploi."""
+    return ListerGroupesUtilisateur(depot)
+
+
+def obtenir_cas_usage_lister_utilisateurs(
+    depot: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+) -> ListerUtilisateurs:
+    """Fournit le cas d'usage de consultation des utilisateurs, prêt à l'emploi."""
+    return ListerUtilisateurs(depot)
+
+
+def obtenir_cas_usage_affecter_groupe_utilisateur(
+    depot_utilisateurs: UtilisateurRepositoryPort = Depends(obtenir_depot_utilisateurs),
+    depot_groupes: GroupeUtilisateurRepositoryPort = Depends(obtenir_depot_groupes_utilisateur),
+) -> AffecterGroupeUtilisateur:
+    """Fournit le cas d'usage d'affectation d'un utilisateur à un groupe, prêt à l'emploi."""
+    return AffecterGroupeUtilisateur(depot_utilisateurs, depot_groupes)
 
 
 # --- Appels d'Offres ---

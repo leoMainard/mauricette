@@ -4,6 +4,7 @@ from mauricette.api.routes.appel_offre_referentiel_routes import (
     routeur as routeur_appel_offre_referentiels,
 )
 from mauricette.api.routes.appel_offre_routes import routeur as routeur_appels_offre
+from mauricette.api.routes.auth_routes import routeur as routeur_auth
 from mauricette.api.routes.chatbot_routes import routeur as routeur_chatbot
 from mauricette.api.routes.document_routes import routeur as routeur_documents
 from mauricette.api.routes.export_routes import routeur as routeur_export
@@ -18,10 +19,12 @@ from mauricette.api.routes.section_referentiel_routes import (
 from mauricette.api.routes.statistiques_routes import routeur as routeur_statistiques
 from mauricette.api.routes.traitement_rag_routes import routeur as routeur_traitement_rag
 from mauricette.api.routes.traitement_rag_routes import routeur_reponses
+from mauricette.api.routes.utilisateur_routes import routeur as routeur_utilisateurs
 
 __all__ = [
     "routeur_appel_offre_referentiels",
     "routeur_appels_offre",
+    "routeur_auth",
     "routeur_chatbot",
     "routeur_documents",
     "routeur_export",
@@ -32,4 +35,5 @@ __all__ = [
     "routeur_sections_referentiel",
     "routeur_statistiques",
     "routeur_traitement_rag",
+    "routeur_utilisateurs",
 ]

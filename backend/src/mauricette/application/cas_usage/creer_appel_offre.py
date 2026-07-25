@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from mauricette.domaine.entites.appel_offre import AppelOffre
 from mauricette.domaine.ports.appel_offre_repository import AppelOffreRepositoryPort
@@ -18,6 +19,7 @@ class CommandeCreerAppelOffre:
 
     nom: str
     cree_par: str
+    cree_par_id: UUID
 
 
 class CreerAppelOffre:
@@ -39,7 +41,9 @@ class CreerAppelOffre:
 
     def executer(self, commande: CommandeCreerAppelOffre) -> AppelOffre:
         """Crée l'Appel d'Offres, le persiste, puis y rattache les référentiels par défaut."""
-        appel_offre = AppelOffre(nom=commande.nom, cree_par=commande.cree_par)
+        appel_offre = AppelOffre(
+            nom=commande.nom, cree_par=commande.cree_par, cree_par_id=commande.cree_par_id
+        )
         self._depot_appels_offre.ajouter(appel_offre)
 
         for referentiel in self._depot_referentiels.lister_actifs_par_defaut():

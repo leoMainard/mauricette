@@ -31,12 +31,17 @@ async function traiterReponse<T>(reponse: Response): Promise<T> {
 export async function requeteJson<T>(chemin: string, options?: RequestInit): Promise<T> {
   const reponse = await fetch(`${URL_BASE_API}${chemin}`, {
     ...options,
+    credentials: "include",
     headers: { "Content-Type": "application/json", ...options?.headers },
   });
   return traiterReponse<T>(reponse);
 }
 
 export async function requeteFormulaire<T>(chemin: string, corps: FormData): Promise<T> {
-  const reponse = await fetch(`${URL_BASE_API}${chemin}`, { method: "POST", body: corps });
+  const reponse = await fetch(`${URL_BASE_API}${chemin}`, {
+    method: "POST",
+    body: corps,
+    credentials: "include",
+  });
   return traiterReponse<T>(reponse);
 }

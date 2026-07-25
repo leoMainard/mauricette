@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from uuid import UUID
 
 from mauricette.domaine.entites.referentiel import Referentiel
 from mauricette.domaine.ports.question_referentiel_repository import (
@@ -46,9 +47,15 @@ class ListerReferentiels:
         self._depot_questions = depot_questions
         self._depot_referentiels_ao = depot_referentiels_ao
 
-    def executer(self, terme_recherche: str | None = None) -> list[ReferentielAvecStatistiques]:
+    def executer(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[ReferentielAvecStatistiques]:
         """Exécute le cas d'usage."""
-        referentiels = self._depot_referentiels.lister_tous(terme_recherche)
+        referentiels = self._depot_referentiels.lister_tous(
+            terme_recherche, ids_proprietaires_visibles
+        )
         nb_sections = self._depot_sections.compter_par_referentiel()
         nb_questions = self._depot_questions.compter_actives_par_referentiel()
         nb_ao = self._depot_referentiels_ao.compter_ao_par_referentiel()

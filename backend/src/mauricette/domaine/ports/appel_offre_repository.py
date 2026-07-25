@@ -27,11 +27,17 @@ class AppelOffreRepositoryPort(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def lister_tous(self, terme_recherche: str | None = None) -> list[AppelOffre]:
+    def lister_tous(
+        self,
+        terme_recherche: str | None = None,
+        ids_proprietaires_visibles: list[UUID] | None = None,
+    ) -> list[AppelOffre]:
         """Retourne les Appels d'Offres, triés du plus récent au plus ancien.
 
         Si `terme_recherche` est fourni, ne retourne que les AO dont le nom le
-        contient (recherche insensible à la casse).
+        contient (recherche insensible à la casse). Si `ids_proprietaires_visibles`
+        est fourni, ne retourne que ceux créés par l'un de ces utilisateurs
+        (visibilité scopée par utilisateur/groupe).
         """
         raise NotImplementedError
 

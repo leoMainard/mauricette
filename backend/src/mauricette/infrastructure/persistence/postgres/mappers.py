@@ -20,18 +20,21 @@ from mauricette.domaine.entites.enums import (
     StatutEtape,
     StatutReponse,
     StatutTache,
+    StatutUtilisateur,
     TypeChunk,
     TypeErreurFeedback,
     TypeTache,
 )
 from mauricette.domaine.entites.feedback_general import FeedbackGeneral
 from mauricette.domaine.entites.feedback_reponse import FeedbackReponse
+from mauricette.domaine.entites.groupe_utilisateur import GroupeUtilisateur
 from mauricette.domaine.entites.message_chatbot import MessageChatbot
 from mauricette.domaine.entites.question_referentiel import QuestionReferentiel
 from mauricette.domaine.entites.referentiel import Referentiel
 from mauricette.domaine.entites.reponse_question import Citation, ReponseQuestion
 from mauricette.domaine.entites.section_referentiel import SectionReferentiel
 from mauricette.domaine.entites.tache_traitement import TacheTraitement
+from mauricette.domaine.entites.utilisateur import Utilisateur
 from mauricette.infrastructure.persistence.postgres.modeles import (
     AppelOffreModele,
     ChunkModele,
@@ -39,12 +42,14 @@ from mauricette.infrastructure.persistence.postgres.modeles import (
     DocumentTraitementRagModele,
     FeedbackGeneralModele,
     FeedbackReponseModele,
+    GroupeUtilisateurModele,
     MessageChatbotModele,
     QuestionReferentielModele,
     ReferentielModele,
     ReponseQuestionModele,
     SectionReferentielModele,
     TacheTraitementModele,
+    UtilisateurModele,
 )
 
 
@@ -54,6 +59,7 @@ def appel_offre_vers_entite(modele: AppelOffreModele) -> AppelOffre:
         id=modele.id,
         nom=modele.nom,
         cree_par=modele.cree_par,
+        cree_par_id=modele.cree_par_id,
         statut=StatutAppelOffre(modele.statut),
         date_creation=modele.date_creation,
         date_maj=modele.date_maj,
@@ -66,6 +72,7 @@ def appel_offre_vers_modele(entite: AppelOffre) -> AppelOffreModele:
         id=entite.id,
         nom=entite.nom,
         cree_par=entite.cree_par,
+        cree_par_id=entite.cree_par_id,
         statut=entite.statut.value,
         date_creation=entite.date_creation,
         date_maj=entite.date_maj,
@@ -111,6 +118,7 @@ def referentiel_vers_entite(modele: ReferentielModele) -> Referentiel:
     return Referentiel(
         id=modele.id,
         nom=modele.nom,
+        cree_par_id=modele.cree_par_id,
         description=modele.description,
         actif_par_defaut=modele.actif_par_defaut,
         date_creation=modele.date_creation,
@@ -123,6 +131,7 @@ def referentiel_vers_modele(entite: Referentiel) -> ReferentielModele:
     return ReferentielModele(
         id=entite.id,
         nom=entite.nom,
+        cree_par_id=entite.cree_par_id,
         description=entite.description,
         actif_par_defaut=entite.actif_par_defaut,
         date_creation=entite.date_creation,
@@ -421,6 +430,44 @@ def feedback_reponse_vers_modele(entite: FeedbackReponse) -> FeedbackReponseMode
         citation_attendue=entite.citation_attendue,
         type_erreur=entite.type_erreur.value if entite.type_erreur else None,
         details_erreur=entite.details_erreur,
+        date_creation=entite.date_creation,
+        date_maj=entite.date_maj,
+    )
+
+
+def groupe_utilisateur_vers_entite(modele: GroupeUtilisateurModele) -> GroupeUtilisateur:
+    """Convertit un modèle ORM `GroupeUtilisateurModele` en entité de domaine `GroupeUtilisateur`."""
+    return GroupeUtilisateur(id=modele.id, nom=modele.nom, date_creation=modele.date_creation)
+
+
+def groupe_utilisateur_vers_modele(entite: GroupeUtilisateur) -> GroupeUtilisateurModele:
+    """Convertit une entité de domaine `GroupeUtilisateur` en modèle ORM `GroupeUtilisateurModele`."""
+    return GroupeUtilisateurModele(id=entite.id, nom=entite.nom, date_creation=entite.date_creation)
+
+
+def utilisateur_vers_entite(modele: UtilisateurModele) -> Utilisateur:
+    """Convertit un modèle ORM `UtilisateurModele` en entité de domaine `Utilisateur`."""
+    return Utilisateur(
+        id=modele.id,
+        email=modele.email,
+        mot_de_passe_hash=modele.mot_de_passe_hash,
+        nom=modele.nom,
+        statut=StatutUtilisateur(modele.statut),
+        groupe_id=modele.groupe_id,
+        date_creation=modele.date_creation,
+        date_maj=modele.date_maj,
+    )
+
+
+def utilisateur_vers_modele(entite: Utilisateur) -> UtilisateurModele:
+    """Convertit une entité de domaine `Utilisateur` en modèle ORM `UtilisateurModele`."""
+    return UtilisateurModele(
+        id=entite.id,
+        email=entite.email,
+        mot_de_passe_hash=entite.mot_de_passe_hash,
+        nom=entite.nom,
+        statut=entite.statut.value,
+        groupe_id=entite.groupe_id,
         date_creation=entite.date_creation,
         date_maj=entite.date_maj,
     )

@@ -9,10 +9,6 @@ from uuid import UUID, uuid4
 from mauricette.domaine.entites.enums import StatutAppelOffre
 from mauricette.domaine.exceptions import ErreurValidationDomaine
 
-# Utilisé tant qu'il n'existe pas de système d'authentification : `cree_par` sera
-# renseigné automatiquement avec l'utilisateur connecté une fois celui-ci disponible.
-UTILISATEUR_NON_AUTHENTIFIE = "utilisateur_non_authentifie"
-
 
 @dataclass
 class AppelOffre:
@@ -24,6 +20,7 @@ class AppelOffre:
 
     nom: str
     cree_par: str
+    cree_par_id: UUID
     id: UUID = field(default_factory=uuid4)
     statut: StatutAppelOffre = StatutAppelOffre.BROUILLON
     date_creation: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

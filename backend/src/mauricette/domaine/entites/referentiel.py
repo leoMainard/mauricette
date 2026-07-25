@@ -20,6 +20,7 @@ class Referentiel:
     """
 
     nom: str
+    cree_par_id: UUID
     id: UUID = field(default_factory=uuid4)
     description: str | None = None
     actif_par_defaut: bool = False

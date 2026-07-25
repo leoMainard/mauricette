@@ -113,3 +113,10 @@ class TypeErreurFeedback(StrEnum):
     SOURCE_MANQUANTE = "source_manquante"
     FORMAT_INADAPTE = "format_inadapte"
     AUTRE = "autre"
+
+
+class StatutUtilisateur(StrEnum):
+    """Niveau de droits d'un compte utilisateur."""
+
+    USER = "user"
+    ADMIN = "admin"

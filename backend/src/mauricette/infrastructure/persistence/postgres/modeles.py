@@ -46,6 +46,9 @@ class AppelOffreModele(Base):
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
     nom: Mapped[str] = mapped_column(String(255), nullable=False)
     cree_par: Mapped[str] = mapped_column(String(255), nullable=False)
+    cree_par_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("utilisateur.id", ondelete="SET NULL"), nullable=True
+    )
     statut: Mapped[str] = mapped_column(String(50), nullable=False)
     date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     date_maj: Mapped[datetime] = mapped_column(
@@ -94,6 +97,9 @@ class ReferentielModele(Base):
     nom: Mapped[str] = mapped_column(String(255), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     actif_par_defaut: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    cree_par_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("utilisateur.id", ondelete="SET NULL"), nullable=True
+    )
     date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     date_maj: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
@@ -297,6 +303,35 @@ class FeedbackGeneralModele(Base):
     )
     avis: Mapped[str | None] = mapped_column(String(20), nullable=True)
     commentaire: Mapped[str | None] = mapped_column(Text, nullable=True)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    date_maj: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+class GroupeUtilisateurModele(Base):
+    """Table `groupe_utilisateur`."""
+
+    __tablename__ = "groupe_utilisateur"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    nom: Mapped[str] = mapped_column(String(255), nullable=False)
+    date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class UtilisateurModele(Base):
+    """Table `utilisateur`."""
+
+    __tablename__ = "utilisateur"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True, default=uuid4)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    mot_de_passe_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    nom: Mapped[str] = mapped_column(String(255), nullable=False)
+    statut: Mapped[str] = mapped_column(String(50), nullable=False)
+    groupe_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), ForeignKey("groupe_utilisateur.id", ondelete="SET NULL"), nullable=True
+    )
     date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     date_maj: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()

@@ -1,6 +1,7 @@
-import { BookOpen, FolderOpen, Plus } from "lucide-react";
+import { BookOpen, FolderOpen, LogOut, Plus, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { LogoMauricette } from "./icones/LogoMauricette";
 
 interface Props {
@@ -22,6 +23,13 @@ const LIENS_NAVIGATION = [
  */
 export function Layout({ children, barreSuperieure, pleineLargeur }: Props) {
   const emplacement = useLocation();
+  const navigate = useNavigate();
+  const { utilisateur, deconnecter } = useAuth();
+
+  async function seDeconnecter() {
+    await deconnecter();
+    navigate("/connexion");
+  }
 
   return (
     <div className="app-shell">
@@ -50,6 +58,31 @@ export function Layout({ children, barreSuperieure, pleineLargeur }: Props) {
             );
           })}
         </nav>
+
+        {utilisateur && (
+          <div className="barre-laterale__pied">
+            <Link to="/profil" className="barre-laterale__utilisateur">
+              <User size={18} />
+              <div className="barre-laterale__utilisateur-info">
+                <span className="barre-laterale__utilisateur-nom">{utilisateur.nom}</span>
+                <span className="barre-laterale__utilisateur-email">{utilisateur.email}</span>
+              </div>
+            </Link>
+            {utilisateur.statut === "admin" && (
+              <Link
+                to="/admin/groupes"
+                className={`barre-laterale__lien${emplacement.pathname.startsWith("/admin/groupes") ? " barre-laterale__lien--actif" : ""}`}
+              >
+                <Users size={18} />
+                Groupes
+              </Link>
+            )}
+            <button type="button" className="barre-laterale__deconnexion" onClick={seDeconnecter}>
+              <LogOut size={18} />
+              Déconnexion
+            </button>
+          </div>
+        )}
       </aside>
 
       <div className="zone-principale">
