@@ -12,6 +12,7 @@ from mauricette.api.dependances import (
     obtenir_cas_usage_deposer_fichier,
     obtenir_cas_usage_obtenir_contenu_document,
     obtenir_cas_usage_supprimer_document,
+    obtenir_cas_usage_telecharger_documents_appel_offre,
 )
 from mauricette.api.schemas.document_schemas import DepotFichierReponse
 from mauricette.application.cas_usage.deposer_fichier import (
@@ -25,6 +26,9 @@ from mauricette.application.cas_usage.obtenir_contenu_document import (
 from mauricette.application.cas_usage.supprimer_document import (
     CommandeSupprimerDocument,
     SupprimerDocument,
+)
+from mauricette.application.cas_usage.telecharger_documents_appel_offre import (
+    TelechargerDocumentsAppelOffre,
 )
 from mauricette.domaine.exceptions import EntiteIntrouvable, ErreurDepotDocument
 
@@ -79,14 +83,16 @@ def supprimer_document(
 def obtenir_contenu_document(
     appel_offre_id: UUID,
     document_id: UUID,
+    telecharger: bool = False,
     cas_usage: ObtenirContenuDocument = Depends(obtenir_cas_usage_obtenir_contenu_document),
 ) -> Response:
-    """Retourne le contenu binaire d'un document, pour aperçu dans l'interface.
+    """Retourne le contenu binaire d'un document, pour aperçu ou téléchargement.
 
     Le fichier est proxifié depuis le stockage (local ou S3/MinIO) plutôt que
     redirigé vers une URL signée, pour éviter tout souci de CORS côté navigateur
     (parsing DOCX/XLSX en JS) et fonctionner à l'identique quel que soit
-    l'adaptateur de stockage actif.
+    l'adaptateur de stockage actif. `telecharger=true` force l'enregistrement
+    du fichier (`attachment`) plutôt que son affichage en place (`inline`).
     """
     try:
         resultat = cas_usage.executer(
@@ -100,8 +106,31 @@ def obtenir_contenu_document(
     # que `filename="..."` : ce dernier est limité au Latin-1 et casserait sur un
     # nom accentué (application francophone).
     nom_base = posixpath.basename(resultat.nom_original.replace("\\", "/"))
+    disposition = "attachment" if telecharger else "inline"
     return Response(
         content=resultat.contenu,
         media_type=resultat.type_mime or "application/octet-stream",
-        headers={"Content-Disposition": f"inline; filename*=UTF-8''{quote(nom_base)}"},
+        headers={"Content-Disposition": f"{disposition}; filename*=UTF-8''{quote(nom_base)}"},
+    )
+
+
+@routeur.get("/zip")
+def telecharger_documents_zip(
+    appel_offre_id: UUID,
+    cas_usage: TelechargerDocumentsAppelOffre = Depends(
+        obtenir_cas_usage_telecharger_documents_appel_offre
+    ),
+) -> Response:
+    """Télécharge tous les documents d'un Appel d'Offres regroupés dans une archive ZIP."""
+    try:
+        resultat = cas_usage.executer(appel_offre_id)
+    except EntiteIntrouvable as erreur:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(erreur)) from erreur
+
+    return Response(
+        content=resultat.contenu,
+        media_type="application/zip",
+        headers={
+            "Content-Disposition": f"attachment; filename*=UTF-8''{quote(resultat.nom_appel_offre)}.zip"
+        },
     )

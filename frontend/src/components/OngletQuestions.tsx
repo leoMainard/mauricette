@@ -1,5 +1,6 @@
-import { Check, FileText, RotateCw, Trash2 } from "lucide-react";
+import { Check, Download, FileText, RotateCw, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { urlExportReponses } from "../api/appelsOffreApi";
 import type { DetailFeedbackReponse } from "../api/feedbackApi";
 import type {
   Citation,
@@ -17,6 +18,7 @@ function nomCourtDocument(nom: string): string {
 }
 
 interface Props {
+  appelOffreId: string;
   referentielsAttaches: Referentiel[];
   referentielsDisponibles: Referentiel[];
   referentielChoisi: string;
@@ -43,6 +45,7 @@ interface Props {
 
 /** Onglet "Questions" de la fiche AO : référentiels appliqués + réponses générées par l'IA. */
 export function OngletQuestions({
+  appelOffreId,
   referentielsAttaches,
   referentielsDisponibles,
   referentielChoisi,
@@ -126,6 +129,22 @@ export function OngletQuestions({
           Réponses extraites par le modèle pour cet AO. {reponsesGenereesTotal} renseignée
           {reponsesGenereesTotal > 1 ? "s" : ""} sur {questionsActivesTotal}.
         </p>
+        <div className="groupe-boutons">
+          <span className="texte-discret groupe-boutons__libelle">Exporter</span>
+          {(["pdf", "docx", "xlsx"] as const).map((format) => (
+            <button
+              key={format}
+              type="button"
+              className="bouton-fantome bouton-fantome--discret"
+              onClick={() => window.open(urlExportReponses(appelOffreId, format), "_blank")}
+              disabled={questionsActivesTotal === 0}
+              title={`Exporter le questionnaire en ${format.toUpperCase()}`}
+            >
+              <Download size={12} style={{ marginRight: "4px" }} />
+              {format.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <button
           type="button"
           className="bouton-fantome"

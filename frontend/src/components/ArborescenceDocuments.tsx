@@ -1,9 +1,11 @@
-import { RotateCw, Trash2 } from "lucide-react";
+import { Download, RotateCw, Trash2 } from "lucide-react";
+import { urlTelechargementDocument } from "../api/appelsOffreApi";
 import type { DocumentDepose, DocumentTraitementRag, StatutDocument } from "../api/types";
 import { Badge } from "./Badge";
 import { BadgeEtapeTraitement } from "./BadgeEtapeTraitement";
 
 interface Props {
+  appelOffreId: string;
   documents: DocumentDepose[];
   /** Si fourni, affiche un bouton de suppression sur chaque fichier. */
   onSupprimer?: (document: DocumentDepose) => void;
@@ -80,6 +82,7 @@ function trierEnfants(noeud: NoeudArbre): NoeudArbre[] {
 }
 
 function NoeudArborescence({
+  appelOffreId,
   noeud,
   profondeur,
   onSupprimer,
@@ -89,6 +92,7 @@ function NoeudArborescence({
   relanceEnCours,
   onOuvrirApercu,
 }: {
+  appelOffreId: string;
   noeud: NoeudArbre;
   profondeur: number;
   onSupprimer?: (document: DocumentDepose) => void;
@@ -136,6 +140,18 @@ function NoeudArborescence({
             <RotateCw size={15} />
           </button>
         )}
+        <button
+          type="button"
+          className="bouton-icone"
+          onClick={(e) => {
+            e.stopPropagation();
+            window.open(urlTelechargementDocument(appelOffreId, document.id), "_blank");
+          }}
+          title="Télécharger"
+          aria-label={`Télécharger ${noeud.nom}`}
+        >
+          <Download size={15} />
+        </button>
         {onSupprimer && (
           <button
             type="button"
@@ -164,6 +180,7 @@ function NoeudArborescence({
       {trierEnfants(noeud).map((enfant) => (
         <NoeudArborescence
           key={enfant.nom}
+          appelOffreId={appelOffreId}
           noeud={enfant}
           profondeur={profondeur + 1}
           onSupprimer={onSupprimer}
@@ -184,6 +201,7 @@ function NoeudArborescence({
  * fichiers là où ils étaient rangés).
  */
 export function ArborescenceDocuments({
+  appelOffreId,
   documents,
   onSupprimer,
   suppressionEnCours,
@@ -203,6 +221,7 @@ export function ArborescenceDocuments({
       {trierEnfants(racine).map((enfant) => (
         <NoeudArborescence
           key={enfant.nom}
+          appelOffreId={appelOffreId}
           noeud={enfant}
           profondeur={0}
           onSupprimer={onSupprimer}
