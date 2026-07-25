@@ -102,7 +102,7 @@ export function PageNouvelAppelOffre() {
           </div>
           <div className="carte">
             <h2>Arborescence déposée</h2>
-            <ArborescenceDocuments documents={documentsCrees} />
+            <ArborescenceDocuments appelOffreId={appelOffreCreeId} documents={documentsCrees} />
           </div>
           <button
             type="button"

@@ -1608,6 +1608,17 @@
   font-size: 0.78rem !important;
 }
 
+.groupe-boutons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.groupe-boutons__libelle {
+  margin-right: 2px;
+  font-size: 0.78rem;
+}
+
 .puce-reponse-modifiee {
   display: inline-flex;
   align-items: center;

@@ -60,3 +60,21 @@ export async function supprimerAppelOffre(appelOffreId: string): Promise<void> {
 export function urlContenuDocument(appelOffreId: string, documentId: string): string {
   return `${URL_BASE_API}/appels-offre/${appelOffreId}/documents/${documentId}/contenu`;
 }
+
+/** URL de téléchargement d'un document (force l'enregistrement plutôt que l'aperçu). */
+export function urlTelechargementDocument(appelOffreId: string, documentId: string): string {
+  return `${URL_BASE_API}/appels-offre/${appelOffreId}/documents/${documentId}/contenu?telecharger=true`;
+}
+
+/** URL de téléchargement de tous les documents d'un AO regroupés en ZIP. */
+export function urlTelechargementDocumentsZip(appelOffreId: string): string {
+  return `${URL_BASE_API}/appels-offre/${appelOffreId}/documents/zip`;
+}
+
+/** URL d'export du questionnaire (réponses) d'un AO dans le format demandé. */
+export function urlExportReponses(
+  appelOffreId: string,
+  format: "pdf" | "docx" | "xlsx",
+): string {
+  return `${URL_BASE_API}/appels-offre/${appelOffreId}/reponses/export?format=${format}`;
+}

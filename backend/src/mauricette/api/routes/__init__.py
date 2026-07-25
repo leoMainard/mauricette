@@ -6,6 +6,7 @@ from mauricette.api.routes.appel_offre_referentiel_routes import (
 from mauricette.api.routes.appel_offre_routes import routeur as routeur_appels_offre
 from mauricette.api.routes.chatbot_routes import routeur as routeur_chatbot
 from mauricette.api.routes.document_routes import routeur as routeur_documents
+from mauricette.api.routes.export_routes import routeur as routeur_export
 from mauricette.api.routes.feedback_routes import routeur as routeur_feedback
 from mauricette.api.routes.question_referentiel_routes import (
     routeur as routeur_questions_referentiel,
@@ -23,6 +24,7 @@ __all__ = [
     "routeur_appels_offre",
     "routeur_chatbot",
     "routeur_documents",
+    "routeur_export",
     "routeur_feedback",
     "routeur_questions_referentiel",
     "routeur_referentiels",

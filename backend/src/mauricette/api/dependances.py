@@ -32,6 +32,9 @@ from mauricette.application.cas_usage.enregistrer_feedback_general import (
 from mauricette.application.cas_usage.enregistrer_feedback_reponse import (
     EnregistrerFeedbackReponse,
 )
+from mauricette.application.cas_usage.exporter_reponses_appel_offre import (
+    ExporterReponsesAppelOffre,
+)
 from mauricette.application.cas_usage.lister_appels_offre import ListerAppelsOffre
 from mauricette.application.cas_usage.lister_feedback_reponses import ListerFeedbackReponses
 from mauricette.application.cas_usage.lister_messages_chatbot import ListerMessagesChatbot
@@ -78,6 +81,9 @@ from mauricette.application.cas_usage.supprimer_question_referentiel import (
 from mauricette.application.cas_usage.supprimer_referentiel import SupprimerReferentiel
 from mauricette.application.cas_usage.supprimer_section_referentiel import (
     SupprimerSectionReferentiel,
+)
+from mauricette.application.cas_usage.telecharger_documents_appel_offre import (
+    TelechargerDocumentsAppelOffre,
 )
 from mauricette.application.cas_usage.valider_reponse import ValiderReponse
 from mauricette.config.parametres import obtenir_parametres
@@ -377,6 +383,15 @@ def obtenir_cas_usage_obtenir_contenu_document(
     return ObtenirContenuDocument(depot_documents, stockage)
 
 
+def obtenir_cas_usage_telecharger_documents_appel_offre(
+    depot_documents: DocumentRepositoryPort = Depends(obtenir_depot_documents),
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    stockage: StockageDocumentPort = Depends(obtenir_stockage),
+) -> TelechargerDocumentsAppelOffre:
+    """Fournit le cas d'usage de téléchargement groupé (ZIP) des documents d'un AO."""
+    return TelechargerDocumentsAppelOffre(depot_documents, depot_appels_offre, stockage)
+
+
 # --- Référentiels ---
 
 
@@ -552,6 +567,19 @@ def obtenir_cas_usage_lister_reponses_ao(
 ) -> ListerReponsesAppelOffre:
     """Fournit le cas d'usage de consultation des réponses générées pour un AO."""
     return ListerReponsesAppelOffre(depot_reponses)
+
+
+def obtenir_cas_usage_exporter_reponses_appel_offre(
+    depot_appels_offre: AppelOffreRepositoryPort = Depends(obtenir_depot_appels_offre),
+    depot_referentiels_ao: ReferentielAppelOffreRepositoryPort = Depends(obtenir_depot_referentiels_ao),
+    depot_sections: SectionReferentielRepositoryPort = Depends(obtenir_depot_sections),
+    depot_questions: QuestionReferentielRepositoryPort = Depends(obtenir_depot_questions_referentiel),
+    depot_reponses: ReponseQuestionRepositoryPort = Depends(obtenir_depot_reponses),
+) -> ExporterReponsesAppelOffre:
+    """Fournit le cas d'usage d'export du questionnaire (réponses) d'un AO."""
+    return ExporterReponsesAppelOffre(
+        depot_appels_offre, depot_referentiels_ao, depot_sections, depot_questions, depot_reponses
+    )
 
 
 def obtenir_cas_usage_valider_reponse(

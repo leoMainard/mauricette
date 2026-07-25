@@ -702,6 +702,7 @@ export function PageDetailAppelOffre() {
 
       {ongletActif === "documents" ? (
         <OngletDocuments
+          appelOffreId={id!}
           documents={documents}
           suivis={suivis}
           suppressionEnCours={suppressionEnCours}
@@ -714,6 +715,7 @@ export function PageDetailAppelOffre() {
         />
       ) : ongletActif === "questions" ? (
         <OngletQuestions
+          appelOffreId={id!}
           referentielsAttaches={referentielsAttaches}
           referentielsDisponibles={referentielsDisponibles}
           referentielChoisi={referentielChoisi}

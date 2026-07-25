@@ -8,6 +8,7 @@ from mauricette.api.routes import (
     routeur_appels_offre,
     routeur_chatbot,
     routeur_documents,
+    routeur_export,
     routeur_feedback,
     routeur_questions_referentiel,
     routeur_referentiels,
@@ -36,6 +37,7 @@ app.add_middleware(
 
 app.include_router(routeur_appels_offre, prefix="/api")
 app.include_router(routeur_documents, prefix="/api")
+app.include_router(routeur_export, prefix="/api")
 app.include_router(routeur_appel_offre_referentiels, prefix="/api")
 app.include_router(routeur_referentiels, prefix="/api")
 app.include_router(routeur_sections_referentiel, prefix="/api")
