@@ -10,6 +10,7 @@ import { PageListeAppelsOffre } from "./pages/PageListeAppelsOffre";
 import { PageListeReferentiels } from "./pages/PageListeReferentiels";
 import { PageNouvelAppelOffre } from "./pages/PageNouvelAppelOffre";
 import { PageProfil } from "./pages/PageProfil";
+import { PageTableauDeBordAdmin } from "./pages/PageTableauDeBordAdmin";
 
 function App() {
   const { utilisateur, chargement } = useAuth();
@@ -37,7 +38,10 @@ function App() {
       <Route path="/referentiels/:id" element={<PageDetailReferentiel />} />
       <Route path="/profil" element={<PageProfil />} />
       {utilisateur.statut === "admin" && (
-        <Route path="/admin/groupes" element={<PageGroupesUtilisateurs />} />
+        <>
+          <Route path="/admin/tableau-de-bord" element={<PageTableauDeBordAdmin />} />
+          <Route path="/admin/groupes" element={<PageGroupesUtilisateurs />} />
+        </>
       )}
       <Route path="/connexion" element={<Navigate to="/" replace />} />
       <Route path="/inscription" element={<Navigate to="/" replace />} />

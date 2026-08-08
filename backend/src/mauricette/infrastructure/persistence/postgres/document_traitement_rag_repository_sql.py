@@ -4,10 +4,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.document_traitement_rag import DocumentTraitementRag
+from mauricette.domaine.entites.enums import StatutEtape
 from mauricette.domaine.ports.document_traitement_rag_repository import (
     DocumentTraitementRagRepositoryPort,
 )
@@ -56,3 +57,27 @@ class DocumentTraitementRagRepositorySQL(DocumentTraitementRagRepositoryPort):
         )
         modeles = self._session.execute(requete).scalars().all()
         return [document_traitement_rag_vers_entite(modele) for modele in modeles]
+
+    def compter_par_etape_et_statut(self) -> dict[str, dict[str, int]]:
+        colonnes_par_etape = {
+            "extraction": DocumentTraitementRagModele.extraction_statut,
+            "decoupage": DocumentTraitementRagModele.decoupage_statut,
+            "embedding": DocumentTraitementRagModele.embedding_statut,
+        }
+        resultat: dict[str, dict[str, int]] = {}
+        for etape, colonne in colonnes_par_etape.items():
+            requete = select(colonne, func.count(DocumentTraitementRagModele.document_id)).group_by(colonne)
+            resultat[etape] = dict(self._session.execute(requete).all())
+        return resultat
+
+    def duree_moyenne_traitement_secondes(self) -> float | None:
+        requete = select(
+            func.avg(
+                func.extract(
+                    "epoch",
+                    DocumentTraitementRagModele.embedding_date_maj - DocumentTraitementRagModele.date_creation,
+                )
+            )
+        ).where(DocumentTraitementRagModele.embedding_statut == StatutEtape.REUSSI.value)
+        resultat = self._session.execute(requete).scalar_one_or_none()
+        return float(resultat) if resultat is not None else None

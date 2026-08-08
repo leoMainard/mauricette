@@ -10,7 +10,7 @@ interface Props {
   onEnregistrer: (detail: DetailFeedbackReponse) => void;
 }
 
-const LIBELLES_TYPE_ERREUR: Record<TypeErreurFeedback, string> = {
+export const LIBELLES_TYPE_ERREUR: Record<TypeErreurFeedback, string> = {
   information_incorrecte: "Information incorrecte",
   information_incomplete: "Information incomplète",
   mauvaise_source: "Mauvaise source citée",

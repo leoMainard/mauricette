@@ -131,3 +131,21 @@ class TacheTraitementRepositorySQL(TacheTraitementRepositoryPort):
         modele.statut = StatutTache.ECHEC.value
         modele.message_erreur = message_erreur
         self._session.commit()
+
+    def compter_par_type_et_statut(self) -> dict[str, dict[str, int]]:
+        requete = select(
+            TacheTraitementModele.type_tache,
+            TacheTraitementModele.statut,
+            func.count(TacheTraitementModele.id),
+        ).group_by(TacheTraitementModele.type_tache, TacheTraitementModele.statut)
+        resultat: dict[str, dict[str, int]] = {}
+        for type_tache, statut, nombre in self._session.execute(requete).all():
+            resultat.setdefault(type_tache, {})[statut] = nombre
+        return resultat
+
+    def compter_echecs_definitifs(self, max_tentatives: int) -> int:
+        requete = select(func.count(TacheTraitementModele.id)).where(
+            TacheTraitementModele.statut == StatutTache.ECHEC.value,
+            TacheTraitementModele.tentatives >= max_tentatives,
+        )
+        return self._session.execute(requete).scalar_one()

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import case, delete, func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.reponse_question import ReponseQuestion
@@ -13,7 +13,11 @@ from mauricette.infrastructure.persistence.postgres.mappers import (
     reponse_question_vers_entite,
     reponse_question_vers_modele,
 )
-from mauricette.infrastructure.persistence.postgres.modeles import ReponseQuestionModele
+from mauricette.infrastructure.persistence.postgres.modeles import (
+    QuestionReferentielModele,
+    ReponseQuestionModele,
+    SectionReferentielModele,
+)
 
 
 class ReponseQuestionRepositorySQL(ReponseQuestionRepositoryPort):
@@ -67,3 +71,41 @@ class ReponseQuestionRepositorySQL(ReponseQuestionRepositoryPort):
         )
         resultats = self._session.execute(requete).all()
         return {appel_offre_id: nombre for appel_offre_id, nombre in resultats}
+
+    def compter_total(self) -> int:
+        requete = select(func.count(ReponseQuestionModele.id))
+        return self._session.execute(requete).scalar_one()
+
+    def compter_par_statut(self) -> dict[str, int]:
+        requete = select(ReponseQuestionModele.statut, func.count(ReponseQuestionModele.id)).group_by(
+            ReponseQuestionModele.statut
+        )
+        return dict(self._session.execute(requete).all())
+
+    def lister_scores_confiance(self) -> list[float]:
+        requete = select(ReponseQuestionModele.score_confiance).where(
+            ReponseQuestionModele.score_confiance.is_not(None)
+        )
+        return list(self._session.execute(requete).scalars().all())
+
+    def compter_sans_contenu_par_referentiel(self) -> dict[UUID, dict[str, int]]:
+        requete = (
+            select(
+                SectionReferentielModele.referentiel_id,
+                func.sum(case((ReponseQuestionModele.contenu.is_not(None), 1), else_=0)),
+                func.sum(case((ReponseQuestionModele.contenu.is_(None), 1), else_=0)),
+            )
+            .join(
+                QuestionReferentielModele,
+                QuestionReferentielModele.id == ReponseQuestionModele.question_referentiel_id,
+            )
+            .join(
+                SectionReferentielModele,
+                SectionReferentielModele.id == QuestionReferentielModele.section_id,
+            )
+            .group_by(SectionReferentielModele.referentiel_id)
+        )
+        resultat: dict[UUID, dict[str, int]] = {}
+        for referentiel_id, avec, sans in self._session.execute(requete).all():
+            resultat[referentiel_id] = {"avec": int(avec), "sans": int(sans)}
+        return resultat
