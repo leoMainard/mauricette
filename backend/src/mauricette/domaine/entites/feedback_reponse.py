@@ -30,9 +30,9 @@ class FeedbackReponse:
     avis: Avis | None = None
     contenu_reponse_snapshot: str | None = None
     commentaire: str | None = None
-    source_attendue: str | None = None
+    sources_attendues_ids: list[UUID] = field(default_factory=list)
     citation_attendue: str | None = None
-    type_erreur: TypeErreurFeedback | None = None
+    types_erreur: list[TypeErreurFeedback] = field(default_factory=list)
     details_erreur: str | None = None
     id: UUID = field(default_factory=uuid4)
     date_creation: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

@@ -214,9 +214,9 @@ export interface FeedbackReponse {
   avis: Avis | null;
   contenu_reponse_snapshot: string | null;
   commentaire: string | null;
-  source_attendue: string | null;
+  sources_attendues_ids: string[];
   citation_attendue: string | null;
-  type_erreur: TypeErreurFeedback | null;
+  types_erreur: TypeErreurFeedback[];
   details_erreur: string | null;
   date_creation: string;
   date_maj: string;
@@ -260,9 +260,10 @@ export interface FeedbackReponseDetaille {
   avis: Avis | null;
   commentaire: string | null;
   contenu_reponse_snapshot: string | null;
-  source_attendue: string | null;
+  sources_attendues_ids: string[];
+  sources_attendues_noms: string[];
   citation_attendue: string | null;
-  type_erreur: TypeErreurFeedback | null;
+  types_erreur: TypeErreurFeedback[];
   details_erreur: string | null;
   date_creation: string;
 }
@@ -270,7 +271,6 @@ export interface FeedbackReponseDetaille {
 export interface StatistiquesFeedback {
   general_par_avis: Record<string, number>;
   reponse_par_avis: Record<string, number>;
-  reponse_par_type_erreur: Record<string, number>;
   general_bruts: FeedbackGeneral[];
   reponse_negatifs_par_referentiel: Record<string, number>;
   reponse_detailles: FeedbackReponseDetaille[];

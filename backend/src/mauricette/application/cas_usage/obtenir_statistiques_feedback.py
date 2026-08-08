@@ -20,7 +20,6 @@ class StatistiquesFeedback:
 
     general_par_avis: dict[str, int]
     reponse_par_avis: dict[str, int]
-    reponse_par_type_erreur: dict[str, int]
     general_bruts: list[FeedbackGeneral]
     reponse_negatifs_par_referentiel: dict[UUID, int]
     reponse_detailles: list[FeedbackReponseDetaille]
@@ -41,7 +40,6 @@ class ObtenirStatistiquesFeedback:
         return StatistiquesFeedback(
             general_par_avis=self._depot_feedback_general.compter_par_avis(),
             reponse_par_avis=self._depot_feedback_reponse.compter_par_avis(),
-            reponse_par_type_erreur=self._depot_feedback_reponse.compter_par_type_erreur(),
             general_bruts=self._depot_feedback_general.lister_tous(),
             reponse_negatifs_par_referentiel=self._depot_feedback_reponse.compter_negatifs_par_referentiel(),
             reponse_detailles=self._depot_feedback_reponse.lister_tous_avec_contexte(),

@@ -82,11 +82,19 @@ export function OngletFeedback({ feedback, referentiels, totalAppelsOffre }: Pro
     return periodes.map((p) => parCle.get(p.cle)!);
   }, [feedback.general_bruts, granularite]);
 
-  const donneesTypeErreur = Object.entries(feedback.reponse_par_type_erreur).map(([type, nombre]) => ({
-    type,
-    libelle: LIBELLES_TYPE_ERREUR[type as keyof typeof LIBELLES_TYPE_ERREUR] ?? type,
-    nombre,
-  }));
+  const donneesTypeErreur = useMemo(() => {
+    const comptes = new Map<string, number>();
+    for (const f of feedback.reponse_detailles) {
+      for (const type of f.types_erreur) comptes.set(type, (comptes.get(type) ?? 0) + 1);
+    }
+    return Array.from(comptes.entries())
+      .map(([type, nombre]) => ({
+        type,
+        libelle: LIBELLES_TYPE_ERREUR[type as keyof typeof LIBELLES_TYPE_ERREUR] ?? type,
+        nombre,
+      }))
+      .sort((a, b) => b.nombre - a.nombre);
+  }, [feedback.reponse_detailles]);
 
   const referentielsNegatifs = useMemo(
     () =>
@@ -356,9 +364,13 @@ export function OngletFeedback({ feedback, referentiels, totalAppelsOffre }: Pro
                         <AvisIcone avis={f.avis} />
                       </td>
                       <td>{f.commentaire ?? "—"}</td>
-                      <td>{f.source_attendue ?? "—"}</td>
+                      <td>{f.sources_attendues_noms.length > 0 ? f.sources_attendues_noms.join(", ") : "—"}</td>
                       <td>{f.citation_attendue ?? "—"}</td>
-                      <td>{f.type_erreur ? LIBELLES_TYPE_ERREUR[f.type_erreur] : "—"}</td>
+                      <td>
+                        {f.types_erreur.length > 0
+                          ? f.types_erreur.map((t) => LIBELLES_TYPE_ERREUR[t]).join(", ")
+                          : "—"}
+                      </td>
                       <td>{f.details_erreur ?? "—"}</td>
                     </tr>
                   ))}

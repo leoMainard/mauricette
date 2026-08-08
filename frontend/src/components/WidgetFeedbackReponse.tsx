@@ -1,11 +1,13 @@
 import { AlertTriangle, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
 import type { DetailFeedbackReponse } from "../api/feedbackApi";
-import type { Avis, FeedbackReponse, TypeErreurFeedback } from "../api/types";
+import type { Avis, DocumentDepose, FeedbackReponse, TypeErreurFeedback } from "../api/types";
+import { SelecteurDocuments } from "./SelecteurDocuments";
 
 interface Props {
   feedback: FeedbackReponse | null;
   contenuReponseActuel: string | null;
+  documents: DocumentDepose[];
   enCours: boolean;
   onEnregistrer: (detail: DetailFeedbackReponse) => void;
 }
@@ -23,13 +25,16 @@ export const LIBELLES_TYPE_ERREUR: Record<TypeErreurFeedback, string> = {
 export function WidgetFeedbackReponse({
   feedback,
   contenuReponseActuel,
+  documents,
   enCours,
   onEnregistrer,
 }: Props) {
   const [detailOuvert, setDetailOuvert] = useState(false);
-  const [sourceAttendue, setSourceAttendue] = useState(feedback?.source_attendue ?? "");
+  const [sourcesAttendues, setSourcesAttendues] = useState<string[]>(
+    feedback?.sources_attendues_ids ?? [],
+  );
   const [citationAttendue, setCitationAttendue] = useState(feedback?.citation_attendue ?? "");
-  const [typeErreur, setTypeErreur] = useState<TypeErreurFeedback | "">(feedback?.type_erreur ?? "");
+  const [typesErreur, setTypesErreur] = useState<TypeErreurFeedback[]>(feedback?.types_erreur ?? []);
   const [detailsErreur, setDetailsErreur] = useState(feedback?.details_erreur ?? "");
 
   const reponseModifieeDepuis =
@@ -41,19 +46,25 @@ export function WidgetFeedbackReponse({
     onEnregistrer({
       avis: nouvelAvis,
       commentaire: feedback?.commentaire ?? null,
-      source_attendue: feedback?.source_attendue ?? null,
+      sources_attendues_ids: feedback?.sources_attendues_ids ?? [],
       citation_attendue: feedback?.citation_attendue ?? null,
-      type_erreur: feedback?.type_erreur ?? null,
+      types_erreur: feedback?.types_erreur ?? [],
       details_erreur: feedback?.details_erreur ?? null,
     });
+  }
+
+  function basculerTypeErreur(type: TypeErreurFeedback) {
+    setTypesErreur((types) =>
+      types.includes(type) ? types.filter((t) => t !== type) : [...types, type],
+    );
   }
 
   function enregistrerDetail() {
     onEnregistrer({
       avis: feedback?.avis ?? null,
-      source_attendue: sourceAttendue.trim() || null,
+      sources_attendues_ids: sourcesAttendues,
       citation_attendue: citationAttendue.trim() || null,
-      type_erreur: typeErreur || null,
+      types_erreur: typesErreur,
       details_erreur: detailsErreur.trim() || null,
     });
     setDetailOuvert(false);
@@ -99,16 +110,15 @@ export function WidgetFeedbackReponse({
 
       {detailOuvert && (
         <div className="formulaire-detail-feedback">
-          <label>
-            Source attendue
-            <input
-              type="text"
-              value={sourceAttendue}
-              onChange={(e) => setSourceAttendue(e.target.value)}
-              placeholder="ex : CCTP, page 4"
+          <div className="champ-detail-feedback">
+            <span className="champ-detail-feedback__libelle">Source(s) attendue(s)</span>
+            <SelecteurDocuments
+              documents={documents}
+              valeur={sourcesAttendues}
+              onChange={setSourcesAttendues}
               disabled={enCours}
             />
-          </label>
+          </div>
           <label>
             Citation attendue
             <input
@@ -120,19 +130,23 @@ export function WidgetFeedbackReponse({
             />
           </label>
           <label>
-            Type d'erreur
-            <select
-              value={typeErreur}
-              onChange={(e) => setTypeErreur(e.target.value as TypeErreurFeedback | "")}
-              disabled={enCours}
-            >
-              <option value="">Sélectionner...</option>
+            Type(s) d'erreur
+            <div className="pastilles-filtre">
               {Object.entries(LIBELLES_TYPE_ERREUR).map(([valeur, libelle]) => (
-                <option key={valeur} value={valeur}>
+                <button
+                  key={valeur}
+                  type="button"
+                  className={`pastille-filtre${
+                    typesErreur.includes(valeur as TypeErreurFeedback) ? " pastille-filtre--active" : ""
+                  }`}
+                  onClick={() => basculerTypeErreur(valeur as TypeErreurFeedback)}
+                  disabled={enCours}
+                  aria-pressed={typesErreur.includes(valeur as TypeErreurFeedback)}
+                >
                   {libelle}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
           </label>
           <label>
             Précisions

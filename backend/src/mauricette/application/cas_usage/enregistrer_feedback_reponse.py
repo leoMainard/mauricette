@@ -21,9 +21,9 @@ class CommandeEnregistrerFeedbackReponse:
     question_referentiel_id: UUID
     avis: Avis | None
     commentaire: str | None
-    source_attendue: str | None
+    sources_attendues_ids: list[UUID]
     citation_attendue: str | None
-    type_erreur: TypeErreurFeedback | None
+    types_erreur: list[TypeErreurFeedback]
     details_erreur: str | None
 
 
@@ -61,9 +61,9 @@ class EnregistrerFeedbackReponse:
             avis=commande.avis,
             contenu_reponse_snapshot=reponse_actuelle.contenu if reponse_actuelle else None,
             commentaire=commande.commentaire,
-            source_attendue=commande.source_attendue,
+            sources_attendues_ids=commande.sources_attendues_ids,
             citation_attendue=commande.citation_attendue,
-            type_erreur=commande.type_erreur,
+            types_erreur=commande.types_erreur,
             details_erreur=commande.details_erreur,
         )
         return self._depot_feedback.enregistrer(feedback)

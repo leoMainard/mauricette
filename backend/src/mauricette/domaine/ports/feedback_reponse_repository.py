@@ -27,9 +27,10 @@ class FeedbackReponseDetaille:
     avis: Avis | None
     commentaire: str | None
     contenu_reponse_snapshot: str | None
-    source_attendue: str | None
+    sources_attendues_ids: list[UUID]
+    sources_attendues_noms: list[str]
     citation_attendue: str | None
-    type_erreur: TypeErreurFeedback | None
+    types_erreur: list[TypeErreurFeedback]
     details_erreur: str | None
     date_creation: datetime
 
@@ -53,12 +54,6 @@ class FeedbackReponseRepositoryPort(ABC):
     def compter_par_avis(self) -> dict[str, int]:
         """Retourne, pour chaque valeur d'avis (positif/négatif), le nombre de feedbacks
         par réponse correspondants, tous AO confondus. Une seule requête agrégée."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def compter_par_type_erreur(self) -> dict[str, int]:
-        """Retourne, pour chaque type d'erreur renseigné, le nombre de feedbacks négatifs
-        détaillés correspondants, tous AO confondus. Une seule requête agrégée."""
         raise NotImplementedError
 
     @abstractmethod

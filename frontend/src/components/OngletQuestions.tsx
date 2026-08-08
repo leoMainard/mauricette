@@ -5,6 +5,7 @@ import type { DetailFeedbackReponse } from "../api/feedbackApi";
 import type {
   Citation,
   DetailReferentiel,
+  DocumentDepose,
   FeedbackReponse,
   Referentiel,
   ReponseQuestion,
@@ -41,6 +42,7 @@ interface Props {
   feedbackParQuestion: Map<string, FeedbackReponse>;
   feedbackEnCoursId: string | null;
   onEnregistrerFeedback: (questionId: string, detail: DetailFeedbackReponse) => void;
+  documents: DocumentDepose[];
 }
 
 /** Onglet "Questions" de la fiche AO : référentiels appliqués + réponses générées par l'IA. */
@@ -64,6 +66,7 @@ export function OngletQuestions({
   feedbackParQuestion,
   feedbackEnCoursId,
   onEnregistrerFeedback,
+  documents,
 }: Props) {
   const questionsActivesTotal = details.reduce(
     (total, d) => total + d.sections.flatMap((s) => s.questions).filter((q) => q.actif).length,
@@ -244,6 +247,7 @@ export function OngletQuestions({
                                   <WidgetFeedbackReponse
                                     feedback={feedbackParQuestion.get(question.id) ?? null}
                                     contenuReponseActuel={reponse.contenu}
+                                    documents={documents}
                                     enCours={feedbackEnCoursId === question.id}
                                     onEnregistrer={(detail) => onEnregistrerFeedback(question.id, detail)}
                                   />
