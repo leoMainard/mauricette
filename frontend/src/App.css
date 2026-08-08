@@ -1210,6 +1210,18 @@
   }
 }
 
+.grille-graphiques-egale {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.grille-etapes-pipeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
 .carte--graphique h2 {
   margin-bottom: 8px;
 }

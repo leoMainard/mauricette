@@ -27,3 +27,17 @@ class DocumentTraitementRagRepositoryPort(ABC):
     @abstractmethod
     def lister_par_appel_offre(self, appel_offre_id: UUID) -> list[DocumentTraitementRag]:
         raise NotImplementedError
+
+    @abstractmethod
+    def compter_par_etape_et_statut(self) -> dict[str, dict[str, int]]:
+        """Retourne, pour chaque étape du pipeline (extraction/decoupage/embedding), le
+        nombre de documents dans chaque statut, tous AO confondus. Trois requêtes
+        agrégées (une par étape), pas de N+1."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def duree_moyenne_traitement_secondes(self) -> float | None:
+        """Durée moyenne (en secondes) entre la création du suivi et la réussite de
+        l'embedding, pour les documents dont le pipeline est allé à son terme. `None`
+        si aucun document n'a encore terminé."""
+        raise NotImplementedError

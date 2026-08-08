@@ -70,3 +70,14 @@ class TacheTraitementRepositoryPort(ABC):
     def marquer_echouee(self, tache_id: UUID, message_erreur: str) -> None:
         """Erreur définitive (ou nombre max de tentatives dépassé) : la tâche ne sera plus retentée."""
         raise NotImplementedError
+
+    @abstractmethod
+    def compter_par_type_et_statut(self) -> dict[str, dict[str, int]]:
+        """Retourne, pour chaque type de tâche, le nombre de tâches dans chaque statut,
+        tous AO/documents confondus. Une seule requête agrégée, pas de N+1."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def compter_echecs_definitifs(self, max_tentatives: int) -> int:
+        """Nombre de tâches en échec ayant épuisé leurs tentatives (`tentatives >= max_tentatives`)."""
+        raise NotImplementedError

@@ -77,6 +77,15 @@ from mauricette.application.cas_usage.obtenir_appel_offre import ObtenirAppelOff
 from mauricette.application.cas_usage.obtenir_contenu_document import ObtenirContenuDocument
 from mauricette.application.cas_usage.obtenir_feedback_general import ObtenirFeedbackGeneral
 from mauricette.application.cas_usage.obtenir_referentiel_detail import ObtenirReferentielDetail
+from mauricette.application.cas_usage.obtenir_statistiques_feedback import (
+    ObtenirStatistiquesFeedback,
+)
+from mauricette.application.cas_usage.obtenir_statistiques_pipeline import (
+    ObtenirStatistiquesPipeline,
+)
+from mauricette.application.cas_usage.obtenir_statistiques_qualite import (
+    ObtenirStatistiquesQualite,
+)
 from mauricette.application.cas_usage.obtenir_volume_documents_par_jour import (
     ObtenirVolumeDocumentsParJour,
 )
@@ -822,6 +831,29 @@ def obtenir_cas_usage_enregistrer_feedback_reponse(
 ) -> EnregistrerFeedbackReponse:
     """Fournit le cas d'usage d'enregistrement du feedback sur une réponse, prêt à l'emploi."""
     return EnregistrerFeedbackReponse(depot_appels_offre, depot_reponses, depot_feedback)
+
+
+def obtenir_cas_usage_obtenir_statistiques_feedback(
+    depot_feedback_general: FeedbackGeneralRepositoryPort = Depends(obtenir_depot_feedback_general),
+    depot_feedback_reponse: FeedbackReponseRepositoryPort = Depends(obtenir_depot_feedback_reponse),
+) -> ObtenirStatistiquesFeedback:
+    """Fournit le cas d'usage de statistiques globales de feedback (tableau de bord admin)."""
+    return ObtenirStatistiquesFeedback(depot_feedback_general, depot_feedback_reponse)
+
+
+def obtenir_cas_usage_obtenir_statistiques_pipeline(
+    depot_traitement_rag: DocumentTraitementRagRepositoryPort = Depends(obtenir_depot_traitement_rag),
+    depot_taches: TacheTraitementRepositoryPort = Depends(obtenir_depot_taches_traitement),
+) -> ObtenirStatistiquesPipeline:
+    """Fournit le cas d'usage de statistiques globales du pipeline RAG (tableau de bord admin)."""
+    return ObtenirStatistiquesPipeline(depot_traitement_rag, depot_taches, obtenir_parametres())
+
+
+def obtenir_cas_usage_obtenir_statistiques_qualite(
+    depot_reponses: ReponseQuestionRepositoryPort = Depends(obtenir_depot_reponses),
+) -> ObtenirStatistiquesQualite:
+    """Fournit le cas d'usage de statistiques globales de qualité des réponses (tableau de bord admin)."""
+    return ObtenirStatistiquesQualite(depot_reponses)
 
 
 # --- Statistiques ---

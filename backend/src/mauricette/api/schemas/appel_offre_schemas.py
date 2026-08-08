@@ -41,6 +41,7 @@ class AppelOffreReponse(BaseModel):
     id: UUID
     nom: str
     cree_par: str
+    cree_par_id: UUID | None
     statut: StatutAppelOffre
     date_creation: datetime
     date_maj: datetime
@@ -52,6 +53,7 @@ class AppelOffreReponse(BaseModel):
             id=appel_offre.id,
             nom=appel_offre.nom,
             cree_par=appel_offre.cree_par,
+            cree_par_id=appel_offre.cree_par_id,
             statut=appel_offre.statut,
             date_creation=appel_offre.date_creation,
             date_maj=appel_offre.date_maj,

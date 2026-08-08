@@ -15,6 +15,8 @@ import {
 } from "recharts";
 import { obtenirVolumeDocumentsParJour } from "../api/statistiquesApi";
 import type { AppelOffreAvecStatistiques, VolumeJour } from "../api/types";
+import { cleSelonGranularite, genererPeriodes, LIBELLES_GRANULARITE } from "../utils/granularite";
+import type { Granularite } from "../utils/granularite";
 import { seuilAvancement } from "./BarreProgression";
 
 interface Props {
@@ -44,70 +46,6 @@ const GRIS_AXE = "#5c6c95";
 const GRIS_GRILLE = "#d0d5e1";
 const COULEUR_AO = "#133478";
 const COULEUR_DOCUMENTS = "#009685";
-
-type Granularite = "jour" | "semaine" | "mois";
-
-const LIBELLES_GRANULARITE: Record<Granularite, string> = {
-  jour: "Jour",
-  semaine: "Semaine",
-  mois: "Mois",
-};
-
-const NB_PERIODES: Record<Granularite, number> = { jour: 14, semaine: 8, mois: 6 };
-
-/** Clé "YYYY-MM-DD" à partir des champs de calendrier LOCAUX d'une date (jamais via
- * `toISOString`, qui convertit en UTC et peut décaler la date d'un jour selon le
- * fuseau horaire — source d'un vrai bug de comptage observé sur ce graphique). */
-function cleJour(date: Date): string {
-  const annee = date.getFullYear();
-  const mois = String(date.getMonth() + 1).padStart(2, "0");
-  const jour = String(date.getDate()).padStart(2, "0");
-  return `${annee}-${mois}-${jour}`;
-}
-
-function lundiDeLaSemaine(date: Date): Date {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const jourSemaine = d.getDay();
-  const decalage = jourSemaine === 0 ? -6 : 1 - jourSemaine;
-  d.setDate(d.getDate() + decalage);
-  return d;
-}
-
-function premierDuMois(date: Date): Date {
-  return new Date(date.getFullYear(), date.getMonth(), 1);
-}
-
-function cleSelonGranularite(date: Date, granularite: Granularite): string {
-  if (granularite === "jour") return cleJour(date);
-  if (granularite === "semaine") return cleJour(lundiDeLaSemaine(date));
-  return cleJour(premierDuMois(date));
-}
-
-function libelleSelonGranularite(date: Date, granularite: Granularite): string {
-  if (granularite === "mois") {
-    return date.toLocaleDateString("fr-FR", { month: "short", year: "2-digit" });
-  }
-  return date.toLocaleDateString("fr-FR", { day: "2-digit", month: "2-digit" });
-}
-
-function genererPeriodes(granularite: Granularite): { cle: string; libelle: string }[] {
-  const n = NB_PERIODES[granularite];
-  const maintenant = new Date();
-  const reference =
-    granularite === "jour"
-      ? new Date(maintenant.getFullYear(), maintenant.getMonth(), maintenant.getDate())
-      : granularite === "semaine"
-        ? lundiDeLaSemaine(maintenant)
-        : premierDuMois(maintenant);
-
-  return Array.from({ length: n }, (_, i) => {
-    const d = new Date(reference);
-    if (granularite === "jour") d.setDate(d.getDate() - (n - 1 - i));
-    else if (granularite === "semaine") d.setDate(d.getDate() - (n - 1 - i) * 7);
-    else d.setMonth(d.getMonth() - (n - 1 - i));
-    return { cle: cleJour(d), libelle: libelleSelonGranularite(d, granularite) };
-  });
-}
 
 /** Tableau de bord (KPIs + graphiques) sur l'ensemble des AO, calculé côté client à
  * partir des données déjà chargées pour la liste (pas d'appel réseau supplémentaire,

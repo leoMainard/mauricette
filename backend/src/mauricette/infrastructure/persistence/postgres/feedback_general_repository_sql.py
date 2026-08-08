@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from mauricette.domaine.entites.feedback_general import FeedbackGeneral
@@ -45,3 +45,16 @@ class FeedbackGeneralRepositorySQL(FeedbackGeneralRepositoryPort):
             select(FeedbackGeneralModele).where(FeedbackGeneralModele.appel_offre_id == appel_offre_id)
         ).scalar_one_or_none()
         return feedback_general_vers_entite(modele) if modele else None
+
+    def compter_par_avis(self) -> dict[str, int]:
+        requete = (
+            select(FeedbackGeneralModele.avis, func.count(FeedbackGeneralModele.id))
+            .where(FeedbackGeneralModele.avis.is_not(None))
+            .group_by(FeedbackGeneralModele.avis)
+        )
+        resultats = self._session.execute(requete).all()
+        return {avis: nombre for avis, nombre in resultats}
+
+    def lister_tous(self) -> list[FeedbackGeneral]:
+        modeles = self._session.execute(select(FeedbackGeneralModele)).scalars().all()
+        return [feedback_general_vers_entite(modele) for modele in modeles]

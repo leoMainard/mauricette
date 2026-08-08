@@ -7,9 +7,11 @@ from uuid import UUID
 
 from pydantic import BaseModel
 
+from mauricette.application.cas_usage.obtenir_statistiques_feedback import StatistiquesFeedback
 from mauricette.domaine.entites.enums import Avis, TypeErreurFeedback
 from mauricette.domaine.entites.feedback_general import FeedbackGeneral
 from mauricette.domaine.entites.feedback_reponse import FeedbackReponse
+from mauricette.domaine.ports.feedback_reponse_repository import FeedbackReponseDetaille
 
 
 class FeedbackGeneralRequete(BaseModel):
@@ -83,4 +85,69 @@ class FeedbackReponseReponse(BaseModel):
             details_erreur=entite.details_erreur,
             date_creation=entite.date_creation,
             date_maj=entite.date_maj,
+        )
+
+
+class FeedbackReponseDetailleReponse(BaseModel):
+    """Un feedback par réponse enrichi de son contexte (AO, référentiel, question),
+    pour l'analyse et le filtrage détaillés du tableau de bord admin."""
+
+    id: UUID
+    appel_offre_id: UUID
+    appel_offre_nom: str
+    referentiel_id: UUID
+    referentiel_nom: str
+    question_referentiel_id: UUID
+    question: str
+    avis: Avis | None
+    commentaire: str | None
+    contenu_reponse_snapshot: str | None
+    source_attendue: str | None
+    citation_attendue: str | None
+    type_erreur: TypeErreurFeedback | None
+    details_erreur: str | None
+    date_creation: datetime
+
+    @classmethod
+    def depuis_dto(cls, dto: FeedbackReponseDetaille) -> "FeedbackReponseDetailleReponse":
+        return cls(
+            id=dto.id,
+            appel_offre_id=dto.appel_offre_id,
+            appel_offre_nom=dto.appel_offre_nom,
+            referentiel_id=dto.referentiel_id,
+            referentiel_nom=dto.referentiel_nom,
+            question_referentiel_id=dto.question_referentiel_id,
+            question=dto.question,
+            avis=dto.avis,
+            commentaire=dto.commentaire,
+            contenu_reponse_snapshot=dto.contenu_reponse_snapshot,
+            source_attendue=dto.source_attendue,
+            citation_attendue=dto.citation_attendue,
+            type_erreur=dto.type_erreur,
+            details_erreur=dto.details_erreur,
+            date_creation=dto.date_creation,
+        )
+
+
+class StatistiquesFeedbackReponse(BaseModel):
+    """Statistiques globales de feedback (tous AO confondus), pour le tableau de bord admin."""
+
+    general_par_avis: dict[str, int]
+    reponse_par_avis: dict[str, int]
+    reponse_par_type_erreur: dict[str, int]
+    general_bruts: list[FeedbackGeneralReponse]
+    reponse_negatifs_par_referentiel: dict[UUID, int]
+    reponse_detailles: list[FeedbackReponseDetailleReponse]
+
+    @classmethod
+    def depuis_dto(cls, dto: StatistiquesFeedback) -> "StatistiquesFeedbackReponse":
+        return cls(
+            general_par_avis=dto.general_par_avis,
+            reponse_par_avis=dto.reponse_par_avis,
+            reponse_par_type_erreur=dto.reponse_par_type_erreur,
+            general_bruts=[FeedbackGeneralReponse.depuis_entite(f) for f in dto.general_bruts],
+            reponse_negatifs_par_referentiel=dto.reponse_negatifs_par_referentiel,
+            reponse_detailles=[
+                FeedbackReponseDetailleReponse.depuis_dto(f) for f in dto.reponse_detailles
+            ],
         )

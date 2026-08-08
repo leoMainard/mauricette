@@ -11,6 +11,7 @@ export interface AppelOffre {
   id: string;
   nom: string;
   cree_par: string;
+  cree_par_id: string | null;
   statut: StatutAppelOffre;
   date_creation: string;
   date_maj: string;
@@ -243,4 +244,50 @@ export interface GroupeUtilisateur {
   id: string;
   nom: string;
   date_creation: string;
+}
+
+/** Statistiques globales de feedback (tous AO confondus), pour le tableau de bord admin. */
+/** Un feedback par réponse enrichi de son contexte (AO, référentiel, question), pour
+ * l'analyse et le filtrage détaillés du tableau de bord admin. */
+export interface FeedbackReponseDetaille {
+  id: string;
+  appel_offre_id: string;
+  appel_offre_nom: string;
+  referentiel_id: string;
+  referentiel_nom: string;
+  question_referentiel_id: string;
+  question: string;
+  avis: Avis | null;
+  commentaire: string | null;
+  contenu_reponse_snapshot: string | null;
+  source_attendue: string | null;
+  citation_attendue: string | null;
+  type_erreur: TypeErreurFeedback | null;
+  details_erreur: string | null;
+  date_creation: string;
+}
+
+export interface StatistiquesFeedback {
+  general_par_avis: Record<string, number>;
+  reponse_par_avis: Record<string, number>;
+  reponse_par_type_erreur: Record<string, number>;
+  general_bruts: FeedbackGeneral[];
+  reponse_negatifs_par_referentiel: Record<string, number>;
+  reponse_detailles: FeedbackReponseDetaille[];
+}
+
+/** Statistiques globales du pipeline RAG et de la file d'attente, pour le tableau de bord admin. */
+export interface StatistiquesPipeline {
+  documents_par_etape: Record<string, Record<string, number>>;
+  taches_par_type: Record<string, Record<string, number>>;
+  taches_echecs_definitifs: number;
+  duree_moyenne_traitement_secondes: number | null;
+}
+
+/** Statistiques globales de qualité des réponses IA, pour le tableau de bord admin. */
+export interface StatistiquesQualite {
+  total_reponses: number;
+  reponses_par_statut: Record<string, number>;
+  scores_confiance: number[];
+  sans_contenu_par_referentiel: Record<string, { avec: number; sans: number }>;
 }

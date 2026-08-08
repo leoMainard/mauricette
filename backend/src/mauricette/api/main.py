@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from mauricette.api.dependances import obtenir_utilisateur_courant
 from mauricette.api.routes import (
+    routeur_admin,
     routeur_appel_offre_referentiels,
     routeur_appels_offre,
     routeur_auth,
@@ -61,6 +62,9 @@ app.include_router(routeur_statistiques, prefix="/api", dependencies=_DEPENDANCE
 # statut ADMIN ; on ajoute quand même l'exigence de connexion pour rester cohérent
 # avec le reste de l'API (401 avant même de vérifier le rôle si pas connecté).
 app.include_router(routeur_utilisateurs, prefix="/api", dependencies=_DEPENDANCE_AUTH)
+# `routeur_admin` (tableau de bord admin) protège aussi déjà chacune de ses routes
+# par le statut ADMIN, même remarque que `routeur_utilisateurs` ci-dessus.
+app.include_router(routeur_admin, prefix="/api", dependencies=_DEPENDANCE_AUTH)
 
 
 @app.get("/api/sante", tags=["Technique"])

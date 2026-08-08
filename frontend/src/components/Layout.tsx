@@ -1,4 +1,4 @@
-import { BookOpen, FolderOpen, LogOut, Plus, User, Users } from "lucide-react";
+import { BookOpen, FolderOpen, LayoutDashboard, LogOut, Plus, User, Users } from "lucide-react";
 import type { ReactNode } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
@@ -69,13 +69,22 @@ export function Layout({ children, barreSuperieure, pleineLargeur }: Props) {
               </div>
             </Link>
             {utilisateur.statut === "admin" && (
-              <Link
-                to="/admin/groupes"
-                className={`barre-laterale__lien${emplacement.pathname.startsWith("/admin/groupes") ? " barre-laterale__lien--actif" : ""}`}
-              >
-                <Users size={18} />
-                Groupes
-              </Link>
+              <>
+                <Link
+                  to="/admin/tableau-de-bord"
+                  className={`barre-laterale__lien${emplacement.pathname.startsWith("/admin/tableau-de-bord") ? " barre-laterale__lien--actif" : ""}`}
+                >
+                  <LayoutDashboard size={18} />
+                  Tableau de bord
+                </Link>
+                <Link
+                  to="/admin/groupes"
+                  className={`barre-laterale__lien${emplacement.pathname.startsWith("/admin/groupes") ? " barre-laterale__lien--actif" : ""}`}
+                >
+                  <Users size={18} />
+                  Groupes
+                </Link>
+              </>
             )}
             <button type="button" className="barre-laterale__deconnexion" onClick={seDeconnecter}>
               <LogOut size={18} />
