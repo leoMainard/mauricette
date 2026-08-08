@@ -1747,6 +1747,165 @@
   width: 100%;
 }
 
+.formulaire-detail-feedback label > .pastilles-filtre {
+  font-weight: 400;
+}
+
+.champ-detail-feedback {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+
+.champ-detail-feedback__libelle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+/* --- Sélecteur de documents (source(s) attendue(s) du feedback détaillé) ---
+   Repris du look "combobox à pastilles" de st.multiselect (Streamlit) : les
+   documents choisis vivent en pastilles dans le champ lui-même, et taper y
+   ouvre une liste déroulante filtrée des documents restants. */
+
+.selecteur-documents {
+  position: relative;
+  font-weight: 400;
+}
+
+.selecteur-documents__controle {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 42px;
+  padding: 5px 30px 5px 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--rayon);
+  background: var(--bg);
+  cursor: text;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.selecteur-documents__chevron {
+  position: absolute;
+  top: 50%;
+  right: 9px;
+  transform: translateY(-50%);
+  color: var(--text-discret);
+  pointer-events: none;
+  transition: transform 0.15s ease;
+  flex-shrink: 0;
+}
+
+.selecteur-documents__chevron--ouvert {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+.selecteur-documents__controle:focus-within {
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+.selecteur-documents__controle--desactive {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selecteur-documents__controle input {
+  width: auto !important;
+  flex: 1 1 100px;
+  min-width: 100px;
+  border: none !important;
+  background: none !important;
+  padding: 4px 2px !important;
+  font-size: 0.85rem;
+}
+
+.selecteur-documents__controle input:focus {
+  outline: none;
+  box-shadow: none !important;
+}
+
+.pastille-document-selectionne {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 6px 3px 10px;
+  border-radius: 6px;
+  background: var(--accent-bg);
+  color: var(--marine);
+  font-size: 0.78rem;
+  font-weight: 600;
+  max-width: 100%;
+}
+
+.pastille-document-selectionne button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+.pastille-document-selectionne button:hover:not(:disabled) {
+  opacity: 1;
+  background: rgba(0, 0, 0, 0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  .pastille-document-selectionne {
+    color: var(--accent);
+  }
+
+  .pastille-document-selectionne button:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.selecteur-documents__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--rayon);
+  background: var(--bg);
+  box-shadow: 0 8px 24px rgba(20, 30, 60, 0.16);
+}
+
+.selecteur-documents__option {
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selecteur-documents__option:hover {
+  background: var(--accent-bg);
+}
+
+.selecteur-documents__vide {
+  padding: 10px 12px;
+  font-size: 0.8rem;
+  color: var(--text-discret);
+}
+
 .widget-feedback-general {
   display: flex;
   flex-direction: column;

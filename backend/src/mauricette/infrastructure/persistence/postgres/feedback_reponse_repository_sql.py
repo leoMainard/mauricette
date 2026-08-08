@@ -19,6 +19,7 @@ from mauricette.infrastructure.persistence.postgres.mappers import (
 )
 from mauricette.infrastructure.persistence.postgres.modeles import (
     AppelOffreModele,
+    DocumentModele,
     FeedbackReponseModele,
     QuestionReferentielModele,
     ReferentielModele,
@@ -47,9 +48,9 @@ class FeedbackReponseRepositorySQL(FeedbackReponseRepositoryPort):
             modele_existant.avis = feedback.avis.value if feedback.avis else None
             modele_existant.contenu_reponse_snapshot = feedback.contenu_reponse_snapshot
             modele_existant.commentaire = feedback.commentaire
-            modele_existant.source_attendue = feedback.source_attendue
+            modele_existant.sources_attendues_ids = [str(i) for i in feedback.sources_attendues_ids]
             modele_existant.citation_attendue = feedback.citation_attendue
-            modele_existant.type_erreur = feedback.type_erreur.value if feedback.type_erreur else None
+            modele_existant.types_erreur = [t.value for t in feedback.types_erreur]
             modele_existant.details_erreur = feedback.details_erreur
             modele = modele_existant
 
@@ -71,15 +72,6 @@ class FeedbackReponseRepositorySQL(FeedbackReponseRepositoryPort):
         )
         resultats = self._session.execute(requete).all()
         return {avis: nombre for avis, nombre in resultats}
-
-    def compter_par_type_erreur(self) -> dict[str, int]:
-        requete = (
-            select(FeedbackReponseModele.type_erreur, func.count(FeedbackReponseModele.id))
-            .where(FeedbackReponseModele.type_erreur.is_not(None))
-            .group_by(FeedbackReponseModele.type_erreur)
-        )
-        resultats = self._session.execute(requete).all()
-        return {type_erreur: nombre for type_erreur, nombre in resultats}
 
     def compter_negatifs_par_referentiel(self) -> dict[UUID, int]:
         requete = (
@@ -122,6 +114,18 @@ class FeedbackReponseRepositorySQL(FeedbackReponseRepositoryPort):
             .join(ReferentielModele, ReferentielModele.id == SectionReferentielModele.referentiel_id)
         )
         resultats = self._session.execute(requete).all()
+
+        ids_documents_references: set[UUID] = set()
+        for feedback, *_ in resultats:
+            ids_documents_references.update(UUID(i) for i in feedback.sources_attendues_ids)
+
+        noms_par_id: dict[UUID, str] = {}
+        if ids_documents_references:
+            requete_documents = select(DocumentModele.id, DocumentModele.nom_original).where(
+                DocumentModele.id.in_(ids_documents_references)
+            )
+            noms_par_id = dict(self._session.execute(requete_documents).all())
+
         return [
             FeedbackReponseDetaille(
                 id=feedback.id,
@@ -134,9 +138,14 @@ class FeedbackReponseRepositorySQL(FeedbackReponseRepositoryPort):
                 avis=Avis(feedback.avis) if feedback.avis else None,
                 commentaire=feedback.commentaire,
                 contenu_reponse_snapshot=feedback.contenu_reponse_snapshot,
-                source_attendue=feedback.source_attendue,
+                sources_attendues_ids=[UUID(i) for i in feedback.sources_attendues_ids],
+                sources_attendues_noms=[
+                    noms_par_id[UUID(i)]
+                    for i in feedback.sources_attendues_ids
+                    if UUID(i) in noms_par_id
+                ],
                 citation_attendue=feedback.citation_attendue,
-                type_erreur=TypeErreurFeedback(feedback.type_erreur) if feedback.type_erreur else None,
+                types_erreur=[TypeErreurFeedback(t) for t in feedback.types_erreur],
                 details_erreur=feedback.details_erreur,
                 date_creation=feedback.date_creation,
             )

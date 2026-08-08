@@ -48,9 +48,9 @@ class FeedbackReponseRequete(BaseModel):
 
     avis: Avis | None = None
     commentaire: str | None = None
-    source_attendue: str | None = None
+    sources_attendues_ids: list[UUID] = []
     citation_attendue: str | None = None
-    type_erreur: TypeErreurFeedback | None = None
+    types_erreur: list[TypeErreurFeedback] = []
     details_erreur: str | None = None
 
 
@@ -63,9 +63,9 @@ class FeedbackReponseReponse(BaseModel):
     avis: Avis | None
     contenu_reponse_snapshot: str | None
     commentaire: str | None
-    source_attendue: str | None
+    sources_attendues_ids: list[UUID]
     citation_attendue: str | None
-    type_erreur: TypeErreurFeedback | None
+    types_erreur: list[TypeErreurFeedback]
     details_erreur: str | None
     date_creation: datetime
     date_maj: datetime
@@ -79,9 +79,9 @@ class FeedbackReponseReponse(BaseModel):
             avis=entite.avis,
             contenu_reponse_snapshot=entite.contenu_reponse_snapshot,
             commentaire=entite.commentaire,
-            source_attendue=entite.source_attendue,
+            sources_attendues_ids=entite.sources_attendues_ids,
             citation_attendue=entite.citation_attendue,
-            type_erreur=entite.type_erreur,
+            types_erreur=entite.types_erreur,
             details_erreur=entite.details_erreur,
             date_creation=entite.date_creation,
             date_maj=entite.date_maj,
@@ -102,9 +102,10 @@ class FeedbackReponseDetailleReponse(BaseModel):
     avis: Avis | None
     commentaire: str | None
     contenu_reponse_snapshot: str | None
-    source_attendue: str | None
+    sources_attendues_ids: list[UUID]
+    sources_attendues_noms: list[str]
     citation_attendue: str | None
-    type_erreur: TypeErreurFeedback | None
+    types_erreur: list[TypeErreurFeedback]
     details_erreur: str | None
     date_creation: datetime
 
@@ -121,9 +122,10 @@ class FeedbackReponseDetailleReponse(BaseModel):
             avis=dto.avis,
             commentaire=dto.commentaire,
             contenu_reponse_snapshot=dto.contenu_reponse_snapshot,
-            source_attendue=dto.source_attendue,
+            sources_attendues_ids=dto.sources_attendues_ids,
+            sources_attendues_noms=dto.sources_attendues_noms,
             citation_attendue=dto.citation_attendue,
-            type_erreur=dto.type_erreur,
+            types_erreur=dto.types_erreur,
             details_erreur=dto.details_erreur,
             date_creation=dto.date_creation,
         )
@@ -134,7 +136,6 @@ class StatistiquesFeedbackReponse(BaseModel):
 
     general_par_avis: dict[str, int]
     reponse_par_avis: dict[str, int]
-    reponse_par_type_erreur: dict[str, int]
     general_bruts: list[FeedbackGeneralReponse]
     reponse_negatifs_par_referentiel: dict[UUID, int]
     reponse_detailles: list[FeedbackReponseDetailleReponse]
@@ -144,7 +145,6 @@ class StatistiquesFeedbackReponse(BaseModel):
         return cls(
             general_par_avis=dto.general_par_avis,
             reponse_par_avis=dto.reponse_par_avis,
-            reponse_par_type_erreur=dto.reponse_par_type_erreur,
             general_bruts=[FeedbackGeneralReponse.depuis_entite(f) for f in dto.general_bruts],
             reponse_negatifs_par_referentiel=dto.reponse_negatifs_par_referentiel,
             reponse_detailles=[

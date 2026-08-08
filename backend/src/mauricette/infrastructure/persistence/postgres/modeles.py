@@ -354,9 +354,9 @@ class FeedbackReponseModele(Base):
     avis: Mapped[str | None] = mapped_column(String(20), nullable=True)
     contenu_reponse_snapshot: Mapped[str | None] = mapped_column(Text, nullable=True)
     commentaire: Mapped[str | None] = mapped_column(Text, nullable=True)
-    source_attendue: Mapped[str | None] = mapped_column(Text, nullable=True)
+    sources_attendues_ids: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     citation_attendue: Mapped[str | None] = mapped_column(Text, nullable=True)
-    type_erreur: Mapped[str | None] = mapped_column(String(30), nullable=True)
+    types_erreur: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     details_erreur: Mapped[str | None] = mapped_column(Text, nullable=True)
     date_creation: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     date_maj: Mapped[datetime] = mapped_column(

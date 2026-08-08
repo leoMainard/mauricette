@@ -734,6 +734,7 @@ export function PageDetailAppelOffre() {
           feedbackParQuestion={feedbackReponses}
           feedbackEnCoursId={feedbackReponseEnCoursId}
           onEnregistrerFeedback={enregistrerFeedbackPourQuestion}
+          documents={documents}
         />
       ) : (
         <OngletChatbot

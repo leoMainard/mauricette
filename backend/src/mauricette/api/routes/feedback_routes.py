@@ -97,9 +97,9 @@ def enregistrer_feedback_reponse(
                 question_referentiel_id=question_referentiel_id,
                 avis=requete.avis,
                 commentaire=requete.commentaire,
-                source_attendue=requete.source_attendue,
+                sources_attendues_ids=requete.sources_attendues_ids,
                 citation_attendue=requete.citation_attendue,
-                type_erreur=requete.type_erreur,
+                types_erreur=requete.types_erreur,
                 details_erreur=requete.details_erreur,
             )
         )

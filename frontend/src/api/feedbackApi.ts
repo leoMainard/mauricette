@@ -27,9 +27,9 @@ export async function listerFeedbackReponses(appelOffreId: string): Promise<Feed
 export interface DetailFeedbackReponse {
   avis: Avis | null;
   commentaire?: string | null;
-  source_attendue?: string | null;
+  sources_attendues_ids?: string[];
   citation_attendue?: string | null;
-  type_erreur?: TypeErreurFeedback | null;
+  types_erreur?: TypeErreurFeedback[];
   details_erreur?: string | null;
 }
 
